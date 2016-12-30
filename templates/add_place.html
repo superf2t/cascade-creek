@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block body %}
+
+
+    <h1>Add new place</h1>
+
+    <form id="search_form">
+        <p>
+            City and state:&nbsp;<input type="text" value="fort collins, co" id="text_place" />&nbsp;<input type="submit" name="submit_button" value="Search">
+        </p>
+        <div id="div_place"></div>
+    </form>
+    
+    <form id="insert_form" action="/_insert_place" method="post">
+        <input type="button" id="insert_button" value="Insert this place into database" />
+    </form>
+
+    <script>
+    function getPlaces() {
+        if (!$('#text_place').val()) {
+            alert("Enter a place");
+            return;
+        }
+        else
+            var place = escape($('#text_place').val());
+
+        $.getJSON('/_get_place/' + place, function() {
+            //...wait
+        }).done(function(data) {
+            $('#div_place').html('<img src="' + data + '"/>');
+        });
+    }
+
+    $(document).ready(function () { $("#text_place").focus() });
+    
+    $("form#search_form").on('submit', function(e) {
+        getPlaces();
+        e.preventDefault();
+    });
+    </script>
+    
+
+{% endblock %}
