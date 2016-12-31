@@ -4,15 +4,16 @@
 
     <h1>Add new place</h1>
 
-    <form id="search_form">
+    <form id="form_search">
         <p>
-            City and state:&nbsp;<input type="text" value="fort collins, co" id="text_place" />&nbsp;<input type="submit" name="submit_button" value="Search">
+            City and state:&nbsp;<input type="text" placeholder="Fort Collins, CO" id="text_place" />&nbsp;<input type="submit" id="button_search" value="Search" class="btn btn-default">
         </p>
         <div id="div_place"></div>
     </form>
     
-    <form id="insert_form" action="/_insert_place" method="post">
-        <input type="button" id="insert_button" value="Insert this place into database" />
+    <form id="form_insert" action="/_insert_place/" method="post">
+        <input type="hidden" name="hidden_place" id="hidden_place">
+        <input type="submit" id="button_insert" value="Insert this place into database" class="btn btn-primary hidden" />
     </form>
 
     <script>
@@ -26,17 +27,34 @@
 
         $.getJSON('/_get_place/' + place, function() {
             //...wait
-        }).done(function(data) {
-            $('#div_place').html('<img src="' + data + '"/>');
+        }).done(function(img_url) {
+            if (img_url == 'google returned no results') {
+                $('#div_place').html('No results returned');    
+                $('#hidden_place').val("");
+                $('#button_insert').addClass('hidden');
+            }
+            else if (img_url == 'place already in database') {
+                $('#div_place').html('This place already exists in the database');    
+                $('#hidden_place').val("");
+                $('#button_insert').addClass('hidden');   
+            }
+            else {
+                $('#div_place').html('<img src="' + img_url + '"/>');
+                //set the hidden field of the submission form with the name field of the search form
+                $('#hidden_place').val($('#text_place').val());
+                $('#button_insert').removeClass('hidden');    
+            }
+            
         });
     }
 
     $(document).ready(function () { $("#text_place").focus() });
     
-    $("form#search_form").on('submit', function(e) {
+    $("form#form_search").on('submit', function(e) {
         getPlaces();
         e.preventDefault();
     });
+
     </script>
     
 
