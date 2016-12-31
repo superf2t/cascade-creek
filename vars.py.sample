@@ -1,0 +1,11 @@
+# This page holds the config vars for this app
+
+import boto3
+
+google_api_key_geocode = "key goes here"
+google_api_key_static_map = "key goes here"
+
+aws_access_key_id = "key goes here"
+aws_secret_access_key = "key goes here"
+
+dynamodb = boto3.resource('dynamodb', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
