@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block body %}
+
+    <h1>Process Queue</h1>
+        
+    <p>This page will poll for SQS messages and return the contents</p>
+
+    <br />
+    <br />
+
+    <div id="results"></div>
+
+    <br />
+    <br />
+
+    <a href="javascript:js_process_queue.get_sqs_message();" class="btn btn-primary">Get Queue Results</a>
+
+{% endblock %}
+
+{% block script %}
+    
+    <script>
+    const js_process_queue = {
+        init: function() {
+            js_process_queue.get_sqs_message()
+        },
+
+        get_sqs_message: function() {
+            $('#results').append('<p>Retrieving a message from queue</p>');
+            //call a page via jquery to do this
+            $.getJSON('/_process_place_queue', function(data) {
+                $('#results').append('<p>' + data + '</p>');
+            });
+        },
+
+        write_sqs_message: function(message) {
+
+        }
+    };
+
+    $(document).ready(function() {
+        js_process_queue.init();
+    });
+    </script>
+
+{% endblock %}

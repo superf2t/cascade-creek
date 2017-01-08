@@ -8,4 +8,7 @@ google_api_key_static_map = "key goes here"
 aws_access_key_id = "key goes here"
 aws_secret_access_key = "key goes here"
 
+sqs_place = 'url to place queue goes here'
+
 dynamodb = boto3.resource('dynamodb', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+sqs = boto3.resource('sqs', aws_access_key_id=vars.aws_access_key_id, aws_secret_access_key=vars.aws_secret_access_key)
