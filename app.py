@@ -43,7 +43,7 @@ def view_place(place_id):
 @app.route("/view_place/<place_id>/queue")
 def initiate_place_scrape(place_id):
     place = get_place(place_id)
-    session_id = utils.get_random_string(5)
+    session_id = get_session_id(place_id)
     send_sqs_place_message(session_id, place)
 
     #redirect to get_listings_airbnb with session_id
@@ -56,12 +56,17 @@ def process_place_queue():
 
 @app.route('/log')
 def show_log(minutes=30):
-    if request.args.get('minutes') != None:
-        minutes = int(request.args.get('minutes'))
+    if request.args.get('minutes') == 'recent':
+        minutes = 9999
+        logs = get_log_most_recent()
 
-    logs = get_log(time_delta=minutes)
-    logs_sorted = sorted(logs['Items'], key=lambda k: k['insert_date'])
-    return render_template("show_log.html", logs=logs_sorted, minutes=int(minutes))
+    else:
+        if request.args.get('minutes') != None:
+            minutes = int(request.args.get('minutes'))
+
+        logs = get_log(time_delta=minutes)
+
+    return render_template("show_log.html", logs=logs, minutes=int(minutes))
 
 ##################
 # Non-page URL"s #
@@ -130,32 +135,32 @@ def _process_place_queue():
 
     message = get_one_sqs_place_message()
 
-    # is this a place?
-    # yes, this is a geo coord place
-    #   get results
-    #   are there more than 300 reults?
-    #     break out quadrants, re-queue
-    #   are there less than 300 results?
-    #     save/queue the listings
-    # is this a listings page?
-    # yes, this is a listings page
-    #   get the listings page
-    #   loop through every listing on this page and
-    #     save/update property
-    #     queue listing
-    # yes, this is a listing
-    #   get the listing
-    #   update the listing with necessary info
-    #   queue a calendar request
-    # yes, this is a listing calendar request
-    #   get the availability
-    #   save/update the availability
+    # ? is this a place?
+    #   a: yes, this is a geo coord place
+    #     get results
+    #       ? are there more than 300 reults?
+    #         break out quadrants, re-queue
+    #       ? are there less than 300 results?
+    #         save/queue the listings
+    # ? is this a listings page?
+    #   a: yes, this is a listings page
+    #     get the listings page
+    #       loop through every listing on this page and
+    #         save/update property
+    #         queue listing
+    # ? is this a listing
+    #   a: yes, this is a listing
+    #     get the listing
+    #       update the listing with necessary info
+    #       queue a calendar request
+    # ? is this a listing calendar request?
+    #   yes, this is a listing calendar request
+    #     get the availability
+    #     save/update the availability
     
     #try:
     # is
     
-    #pdb.set_trace()
-
     if message == '':
         #log
         insert_qbnb_log({'session_id':'n/a',
@@ -189,7 +194,7 @@ def _process_place_queue():
                             'elapsed_time': '0',
                             'insert_date': str(datetime.datetime.now())})
 
-            save_four_new_quadrants(m['session_id']['StringValue'], place)
+            insert_four_new_quadrants(m['session_id']['StringValue'], place)
             delete_sqs_place_message(message)
             output = "More than 300 results for place '%s'. Queued 4 new searches." % m['name']['StringValue']
 
@@ -206,6 +211,13 @@ def _process_place_queue():
                             'elapsed_time': '0',
                             'insert_date': str(datetime.datetime.now())})
 
+            pdb.set_trace()
+
+            
+            # process these 18 results
+            # queue the next listing page
+## next: need to figure out how the pagination works
+            next_offset = results['results_json']['metadata']['pagination']['next_offset']
             output = "less than 300"
 
         else:
@@ -322,14 +334,51 @@ def get_places():
 # get log items
 def get_log(num_items=500, time_delta=30):
     results_after = datetime.datetime.now() - datetime.timedelta(minutes=time_delta)
-    log = []
     table = vars.dynamodb.Table('QbnbLog')
     r = table.scan(Limit=num_items, FilterExpression=Attr('insert_date').gt(str(results_after)))
+
+    logs_sorted = sorted(r['Items'], key=lambda k: k['insert_date'])
     
-    return r
+    return logs_sorted
+
+# get most recent log items
+# there is no way to just pull "most recent" from dynamodb, so I'll need to loop until I find results
+def get_log_most_recent():
+    time_delta = 15
+    table = vars.dynamodb.Table('QbnbLog')
+    logs_sorted = {}
+
+    while True:
+        results_after = datetime.datetime.now() - datetime.timedelta(minutes=time_delta)
+        result = table.scan(Limit=500, FilterExpression=Attr('insert_date').gt(str(results_after)))
+
+        # if results are returned, then exit
+        if result['Count'] != 0:
+            logs_sorted = sorted(result['Items'], key=lambda k: k['insert_date'])
+            break
+        else:
+            # otherwise, increase the time limit and search again
+            if time_delta < 2000:
+                time_delta *= 2
+            else:
+                time_delta += 1440
+
+    
+
+    return logs_sorted
+
+
+
+
+#if this function is called, we will insert a row into the database to log the session
+def get_session_id(place_id):
+    session_id = utils.get_random_string(5)
+    insert_session(session_id, place_id)
+    return session_id
+
 
 #break a place up into 4 new quadrants, save each to the queue
-def save_four_new_quadrants(session_id, place):
+def insert_four_new_quadrants(session_id, place):
     nw = place_quadrant(place, 'nw')
     ne = place_quadrant(place, 'ne')
     sw = place_quadrant(place, 'sw')
@@ -463,6 +512,11 @@ def delete_sqs_place_message(message):
 
     message.delete()
 
+def insert_session(session_id, place_id):
+    table = vars.dynamodb.Table("Session")
+    table.put_item(Item={"session_id": str(session_id), 
+                        "place_id": str(place_id), 
+                        "insert_date": str(datetime.datetime.now())})
 
 def insert_qbnb_log(item):
     table = vars.dynamodb.Table("QbnbLog")
