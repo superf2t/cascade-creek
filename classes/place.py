@@ -6,6 +6,8 @@ import datetime
 import vars
 import utils
 
+import pdb
+
 class Place:
     def __init__(self, place_id = '', name = '', lat = '', lng = '', 
                 ne_lat = '', ne_lng = '', sw_lat = '', sw_lng = ''):
@@ -42,17 +44,16 @@ class Place:
 
 
     def get_place_from_id(self, place_id):
-        table = vars.dynamodb.Table("Place")
-        r = table.get_item(Key={'place_id': place_id})
-        r = r['Item']
-        self.place_id = r['place_id']
-        self.name = r['name']
-        self.lat = r['lat']
-        self.lng = r['lng']
-        self.ne_lat = r['ne_lat']
-        self.ne_lng = r['ne_lng']
-        self.sw_lat = r['sw_lat']
-        self.sw_lng = r['sw_lng']
+        place = utils.pg_sql("select * from place where s_google_place_id = %s", (place_id,))
+        p = place[0]
+        self.place_id = p['s_google_place_id']
+        self.name = p['s_name']
+        self.lat = p['s_lat']
+        self.lng = p['s_lng']
+        self.ne_lat = p['s_ne_lat']
+        self.ne_lng = p['s_ne_lng']
+        self.sw_lat = p['s_sw_lat']
+        self.sw_lng = p['s_sw_lng']
         self.set_img_url()
 
     def set_parent_place(self, parent_place):

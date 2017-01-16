@@ -28,18 +28,16 @@ body .container { width: 100%; }
             <th>function</th>
             <th>action</th>
             <th>elapsed_time</th>
-            <th>place_name</th>
             <th>url</th>
         </tr>
         {% for log in logs %}
-            <tr{% if log.function == "page show_log()" %} class="info"{% endif %}>
-                <td>{{ log.session_id }}</td>
-                <td nowrap>{{ log.insert_date }}</td>
-                <td nowrap>{{ log.function }}</td>
-                <td nowrap>{{ log.action }}</td>
-                <td>{{ log.elapsed_time }}</td>
-                <td>{{ log.place_name }}</td>
-                <td nowrap>{{ log.url }}</td>
+            <tr{% if log.s_function == "page show_log()" %} class="info"{% endif %}>
+                <td>{{ log.s_session_id }}</td>
+                <td nowrap>{{ log.dt_insert }}</td>
+                <td nowrap>{{ log.s_function }}</td>
+                <td nowrap>{{ log.s_action }}</td>
+                <td>{{ log.d_elapsed_time }}</td>
+                <td nowrap>{{ log.s_url }}</td>
             </tr>
         {% endfor %}
         </table>

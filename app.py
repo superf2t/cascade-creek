@@ -10,8 +10,6 @@ import datetime
 import time
 import math
 from decimal import Decimal
-#import ast # used for converting strings to dict
-from boto3.dynamodb.conditions import Key, Attr
 
 import pdb
 
@@ -40,13 +38,13 @@ def add_place():
 
 @app.route("/view_place/<place_id>")
 def view_place(place_id):
-    utils.log(None, 'page view_place(%s)' % place_id, None, None, place_id)
+    utils.log(None, 'page view_place(%s)' % place_id, None)
     place = get_place(place_id)
     return render_template("view_place.html", place=place)
 
 @app.route("/view_place/<place_id>/queue")
 def initiate_place_scrape(place_id):
-    utils.log(None, 'page initiate_place_scrape(%s)' % place_id, 'page load', None, place_id)
+    utils.log(None, 'page initiate_place_scrape(%s)' % place_id, 'page load')
     place = get_place(place_id)
     session_id = get_session_id(place_id, place.name)
     insert_sqs_place_message(session_id, place)
@@ -64,8 +62,7 @@ def process_place_queue():
 def queue_all_calendar():
     utils.log(None, 'page queue_all_calendar', 'page load')
     sessions = get_sessions()
-    sessions_count = sessions['Count']
-    sessions_items = sessions['Items']
+    sessions_count = len(sessions)
 
     queued = False
     queued_count = 0
@@ -73,7 +70,7 @@ def queue_all_calendar():
         queued = request.args.get('session_id')
         queued_count = request.args.get('count')
 
-    return render_template("queue_all_calendar.html", sessions=sessions_items, count=sessions_count, queued=queued, queued_count=queued_count)
+    return render_template("queue_all_calendar.html", sessions=sessions, count=sessions_count, queued=queued, queued_count=queued_count)
 
 @app.route("/queue_all_calendar/<session_id>")
 def queue_all_calendar_go(session_id):
@@ -105,33 +102,17 @@ def show_log(minutes=30):
 def get_place_google(place):
     utils.log(None, 'get_place_google', 'place_id = %s' % place)
 
-    #try:
-    
     place = get_google_place(place)
 
     # see if this place already exists in the db
-    """
-    table = vars.dynamodb.Table("Place")
-    response = table.get_item(
-            Key={
-                "place_id": place.place_id
-            }
-        )
-    """
-    response = utils.pg_sql("select * from place where s_airbnb_id = '%s'" % str(place.place_id))
+    response = utils.pg_sql("select * from place where s_google_place_id = %s", (place.place_id,))
     # if an Item was returned, this place is already in the db
-    try:
-        #item = response["Item"]
-        item = response[0]
+    
+    if len(response) == 0:
+        return jsonify(place.img_url)
+    else:
         return jsonify("place already in database")
 
-    # if a KeyError is thrown, this place is not in the database
-    except KeyError:
-        return jsonify(place.img_url)
-
-    # google returned no results
-    #except:
-    #    return jsonify("google returned no results")
 
 # insert a place into database
 @app.route("/_insert_place/", methods=["POST"])
@@ -141,20 +122,11 @@ def insert_place():
     str_place = request.form["hidden_place"]
     
     place = get_google_place(str_place)
-    table = vars.dynamodb.Table("Place")
-    table.put_item(
-            Item={
-                "place_id": place.place_id,
-                "name": place.name,
-                "lat": str(place.lat),
-                "lng": str(place.lng),
-                "ne_lat": str(place.ne_lat),
-                "ne_lng": str(place.ne_lng),
-                "sw_lat": str(place.sw_lat),
-                "sw_lng": str(place.sw_lng),
-                "insert_date": str(place.insert_date)
-            }
-        )
+
+    sql = "insert into place (s_google_place_id, s_name, s_lat, s_lng, s_ne_lat, s_ne_lng, s_sw_lat, s_sw_lng, dt_insert) " \
+            "values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    params = (place.place_id, place.name, place.lat, place.lng, place.ne_lat, place.ne_lng, place.sw_lat, place.sw_lng, place.insert_date)
+    utils.pg_sql(sql, params)
 
     return redirect("/")
 
@@ -216,7 +188,7 @@ def _process_place_queue():
             #are there more than 300 listings?
             # yes = break into 4 quadrants, queue each
             if results['results_json']['metadata']['listings_count'] >= 300:
-                utils.log(session_id, '_process_place_queue', 'place, >300 results for %s' % m['name']['StringValue'], None, m['place_id']['StringValue'])
+                utils.log(session_id, '_process_place_queue', 'place, >300 results for %s' % m['name']['StringValue'])
 
                 insert_four_new_place_quadrants(session_id, place)
                 delete_sqs_place_message(message)
@@ -225,7 +197,7 @@ def _process_place_queue():
 
             # no = queue listing pages
             elif results['results_json']['metadata']['listings_count'] < 300:
-                utils.log(session_id, '_process_place_queue', 'place, <300 results for %s' % m['name']['StringValue'], None, m['place_id']['StringValue'])
+                utils.log(session_id, '_process_place_queue', 'place, <300 results for %s' % m['name']['StringValue'])
 
                 listings_count = results['results_json']['metadata']['listings_count']
 
@@ -260,14 +232,14 @@ def _process_place_queue():
 
             # loop through results and save to db
             # the sqs message to get detail and calendar is also performed in here
-            listings_count = save_listings(session_id, search_results)
+            listings_count = save_listings(place.place_id, session_id, search_results)
 
             # delete this listing overview sqs
             delete_sqs_place_message(message)
 
             #log
             time_end = time.time()
-            utils.log(session_id, '_process_place_queue', 'listing overview, saved %s listings' % listings_count, None, None, None, time_end - time_start)
+            utils.log(session_id, '_process_place_queue', 'listing overview, saved %s listings' % listings_count, None, time_end - time_start)
 
             output = 'Listing overview, saved %s places, queued individual listing pull' % listings_count
 
@@ -288,7 +260,7 @@ def _process_place_queue():
         #   tbd
         elif m_type == 'calendar':
             listing_id = m['listing_id']['StringValue']
-            utils.log(session_id, '_process_place_queue', 'calendar, preparing to save calendar detail', m['url']['StringValue'], None, listing_id)
+            utils.log(session_id, '_process_place_queue', 'calendar, preparing to save calendar detail', m['url']['StringValue'])
             
             calendar = get_place_search(session_id, m['url']['StringValue'])
 
@@ -336,7 +308,7 @@ def get_google_place(place):
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(None, 'get_google_place', 'Getting place info from G', url, r['place_id'], None, elapsed_time)
+    utils.log(None, 'get_google_place', 'Getting place info from G', url, elapsed_time)
     
     return place
 
@@ -349,7 +321,7 @@ def get_place_search(session_id, place_search_url):
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'get_place_search', 'Get airbnb listings page', place_search_url, None, None, elapsed_time)
+    utils.log(session_id, 'get_place_search', 'Get airbnb listings page', place_search_url, elapsed_time)
 
     return result.json()
 
@@ -361,28 +333,22 @@ def get_place_search(session_id, place_search_url):
 
 # get one place from db
 def get_place(place_id):
-    utils.log(None, 'get_place', 'get one place from db', None, place_id)
+    utils.log(None, 'get_place', 'get one place from db')
 
     p = Place()
     p.get_place_from_id(place_id)
     return p
 
-# get all places from dynamodb, return an array of class Place
+# get all places from db, return an array of class Place
 def get_places():
     utils.log(None, 'get_places', 'get all places from db')
 
     places = []
-        
-    #table = vars.dynamodb.Table("Place")
-    #r = table.scan()
 
     results = utils.pg_sql("select * from place")
 
-    #pdb.set_trace()
-
-    #for key, place in enumerate(r["Items"]):
     for place in results:
-        p = Place(place["s_airbnb_id"], place["s_name"], place["s_lat"], place["s_lng"], place["s_ne_lat"], place["s_ne_lng"], place["s_sw_lat"], place["s_sw_lng"])
+        p = Place(place["s_google_place_id"], place["s_name"], place["s_lat"], place["s_lng"], place["s_ne_lat"], place["s_ne_lng"], place["s_sw_lat"], place["s_sw_lng"])
         places.append(p)
     
 
@@ -391,54 +357,31 @@ def get_places():
 # get log items
 def get_log(num_items=10000, time_delta=30):
     results_after = datetime.datetime.now() - datetime.timedelta(minutes=time_delta)
-    table = vars.dynamodb.Table('QbnbLog')
-    r = table.scan(Limit=num_items, FilterExpression=Attr('insert_date').gt(str(results_after)))
-
-    logs_sorted = sorted(r['Items'], key=lambda k: k['insert_date'])
+    response = utils.pg_sql("select * from qbnb_log where dt_insert > %s order by dt_insert", (str(results_after),))
     
-    return logs_sorted
+    return response
 
 # get most recent log items
-# there is no way to just pull "most recent" from dynamodb, so I'll need to loop until I find results
 def get_log_most_recent():
     utils.log(None, 'get_log_most_recent', 'get recent log items')
 
-    time_delta = 15
-    table = vars.dynamodb.Table('QbnbLog')
-    logs_sorted = {}
+    response = utils.pg_sql("select * from (select * from qbnb_log order by dt_insert desc limit 500) t1 order by dt_insert")
 
-    while True:
-        results_after = datetime.datetime.now() - datetime.timedelta(minutes=time_delta)
-        result = table.scan(Limit=500, FilterExpression=Attr('insert_date').gt(str(results_after)))
-
-        # if results are returned, then exit
-        if result['Count'] != 0:
-            logs_sorted = sorted(result['Items'], key=lambda k: k['insert_date'])
-            break
-        else:
-            # otherwise, increase the time limit and search again
-            if time_delta < 2000:
-                time_delta *= 2
-            else:
-                time_delta += 1440
-
-    
-
-    return logs_sorted
+    return response
 
 
 #get all existing sessions in the db
 def get_sessions():
     utils.log(None, 'get_sessions', 'getting all sessions')
 
-    table = vars.dynamodb.Table('Session')
-    r = table.scan()
-    return r
+
+    response = utils.pg_sql("select * from session")
+    return response
 
 
 #if this function is called, we will insert a row into the database to log the session
 def get_session_id(place_id, place_name):
-    utils.log(None, 'get_session_id', 'get fresh session_id', None, place_id)
+    utils.log(None, 'get_session_id', 'get fresh session_id')
     session_id = utils.get_random_string(5)
     insert_session(session_id, place_id, place_name)
     return session_id
@@ -446,7 +389,7 @@ def get_session_id(place_id, place_name):
 
 #break a place up into 4 new quadrants, save each to the queue
 def insert_four_new_place_quadrants(session_id, place):
-    utils.log(session_id, 'insert_four_new_place_quadrants', 'break up a place into 4 new quadrants, save each to the queue', None, place.place_id)
+    utils.log(session_id, 'insert_four_new_place_quadrants', 'Create 4 new quadrants, save to queue')
 
     nw = build_place_quadrant(place, 'nw')
     ne = build_place_quadrant(place, 'ne')
@@ -460,7 +403,7 @@ def insert_four_new_place_quadrants(session_id, place):
 
 # create a new place which is a quadrant of a previous place
 def build_place_quadrant(place, quadrant):
-    utils.log(None, 'build_place_quadrant', 'create a new quadrant, q_%s' % quadrant, None, place.place_id)
+    utils.log(None, 'build_place_quadrant', 'create a new quadrant, q_%s' % quadrant)
 
     place_quadrant = Place("%s | q_%s" % (place.place_id, quadrant), "%s | q_%s" % (place.name, quadrant))
 
@@ -501,7 +444,7 @@ def insert_sqs_listing_overview_pages(session_id, listings_count, place):
     # get how many pages of results there are in the place quadrant and insert sqs messages for each
     total_pages = math.ceil(listings_count / 18)
 
-    utils.log(session_id, 'insert_sqs_listing_overview_pages', 'insert %s listing overview pages' % total_pages, None, place.place_id)
+    utils.log(session_id, 'insert_sqs_listing_overview_pages', 'insert %s listing overview pages' % total_pages)
 
     
     this_page = 1
@@ -526,7 +469,7 @@ def insert_sqs_listing_overview_message(session_id, place, page):
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'insert_sqs_listing_overview_message', 'Sent an sqs for %s, listing overview page %s' % (place.name, page), None, place.place_id)
+    utils.log(session_id, 'insert_sqs_listing_overview_message', 'Sent an sqs for %s, listing overview page %s' % (place.name, page))
 
     return True
 
@@ -563,7 +506,7 @@ def insert_sqs_listing_detail_page(session_id, listing_id):
         }
     }
 
-    utils.log(session_id, 'insert_sqs_listing_detail_pages', 'Inserting listing detail sqs for listing_id %s' % listing_id, listing_url, None, listing_id)
+    utils.log(session_id, 'insert_sqs_listing_detail_pages', 'Inserting listing detail sqs for listing_id %s' % listing_id, listing_url)
     sqs.send_message(MessageBody=message_body, MessageAttributes=message_attributes)
 
     return True
@@ -599,7 +542,7 @@ def insert_sqs_listing_calendar(session_id, listing_id):
         }
     }
 
-    utils.log(session_id, 'insert_sqs_listing_calendar', 'Inserting calendar sqs for listing_id %s' % listing_id, listing_url, None, listing_id)
+    utils.log(session_id, 'insert_sqs_listing_calendar', 'Inserting calendar sqs for listing_id %s' % listing_id, listing_url)
     sqs.send_message(MessageBody=message_body, MessageAttributes=message_attributes)
 
     return True
@@ -616,12 +559,12 @@ def insert_sqs_place_message(session_id, place):
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'insert_sqs_place_message', 'Inserted sqs for %s' % place.name, None, place.place_id, None, elapsed_time)
+    utils.log(session_id, 'insert_sqs_place_message', 'Inserted sqs for %s' % place.name, None, elapsed_time)
 
     return True
 
 def build_sqs_place_attributes(session_id, place, process_type, page=1):
-    utils.log(session_id, 'build_sqs_place_attributes', 'place attributes page %s' % page, None, place.place_id)
+    utils.log(session_id, 'build_sqs_place_attributes', 'place attributes page %s' % page)
 
     message_attributes = {
         'type': {
@@ -687,30 +630,30 @@ def delete_sqs_place_message(message):
     message.delete()
 
 def insert_session(session_id, place_id, place_name):
-    utils.log(session_id, 'insert_session', 'Insert row into Session table', None, place_id)
+    utils.log(session_id, 'insert_session', 'Insert row into Session table')
 
-    table = vars.dynamodb.Table("Session")
-    table.put_item(Item={"session_id": str(session_id), 
-                        "place_id": str(place_id), 
-                        "place_name": str(place_name),
-                        "insert_date": str(datetime.datetime.now())})
+    sql = "insert into session (s_session_id, s_google_place_id, dt_insert) values (%s, %s, %s)"
+    params = (session_id, place_id, str(datetime.datetime.now()))
+
+    utils.pg_sql(sql, params)
+
 
 # get a listing from the database
 def get_listing(session_id, listing_id):
-    #utils.log(session_id, 'get_listing', 'Getting listing')
 
-    table = vars.dynamodb.Table("Listing")
-    r = table.scan(FilterExpression="session_id = :session_id AND listing_id = :listing_id", 
-                    ExpressionAttributeValues={":listing_id": listing_id, ":session_id": str(session_id)})
-    if r['Count'] == 0:
+    sql = "select * from listing where listing_id = %s and session_id = %s"
+    params = (listing_id, session_id)
+    response = utils.pg_sql(sql, params)
+
+    if len(response) == 0:
         utils.log(session_id, 'get_listing', 'Listing does not exist, session_id = %s, listing_id = %s' % (session_id, listing_id))
     else:
         utils.log(session_id, 'get_listing', 'Found listing, session_id = %s, listing_id = %s' % (session_id, listing_id))
 
-    return r
+    return response
 
 # loop through json from /search and save all listings to db
-def save_listings(session_id, listings):
+def save_listings(place_id, session_id, listings):
     utils.log(session_id, 'save_listings', 'loop through and save listings')
 
     time_start = time.time()
@@ -732,8 +675,8 @@ def save_listings(session_id, listings):
         # no listing is returned, this is a new one, so insert
         if l['Count'] == 0:
             # insert
-            utils.log(session_id, 'save_listings', 'Inserting new listing id %s' % listing_id, None, None, listing_id)
-            insert_listing(session_id, listing)
+            utils.log(session_id, 'save_listings', 'Inserting new listing id %s' % listing_id)
+            insert_listing(place_id, session_id, listing)
 
             # queue a listing detail search
             insert_sqs_listing_detail_page(session_id, listing_id)
@@ -746,8 +689,8 @@ def save_listings(session_id, listings):
             # but does not have the same session_id, then insert
             if session_id != l['Items'][0]['session_id']:
                 # insert
-                utils.log(session_id, 'save_listings', 'Updating listing id %s' % listing_id, None, None, listing_id)
-                insert_listing(session_id, listing)
+                utils.log(session_id, 'save_listings', 'Updating listing id %s' % listing_id)
+                insert_listing(place_id, session_id, listing)
 
                 # queue a listing detail search
                 insert_sqs_listing_detail_page(session_id, listing_id)
@@ -758,177 +701,138 @@ def save_listings(session_id, listings):
             # and has the same session_id, then do not re-insert
             else:
                 # already inserted this listing in this session
-                utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id), None, None, listing_id)            
+                utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id))
 
         
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'save_listings', 'Inserted %s items into Listing table' % i, None, None, None, elapsed_time)
+    utils.log(session_id, 'save_listings', 'Inserted %s items into Listing table' % i, None, elapsed_time)
 
     return i
 
-def insert_listing(session_id, listing):
-    #pdb.set_trace()
-
+def insert_listing(place_id, session_id, listing):
+    
     listing_id = listing['listing']['id']
+    listing_name = listing['listing']['name']
+    star_rating = listing['listing']['star_rating']
+    room_type = listing['listing']['room_type']
+    rate = listing['pricing_quote']['rate']['amount']
+    reviews_count = listing['listing']['reviews_count']
+    person_capacity = listing['listing']['person_capacity']
+    is_business_travel_ready = listing['listing']['is_business_travel_ready']
+    lat = listing['listing']['lat']
+    lng = listing['listing']['lng']
+    is_new_listing = listing['listing']['is_new_listing']
+    can_instant_book = listing['pricing_quote']['can_instant_book']
+    picture_url = listing['listing']['picture_url']
+    localized_city = listing['listing']['localized_city']
+    picture_count = listing['listing']['picture_count']
+    host_id = listing['listing']['primary_host']['id']
+    host_name = listing['listing']['primary_host']['first_name']
+    beds = listing['listing']['beds']
+    bedrooms = listing['listing']['bedrooms']
 
-    table = vars.dynamodb.Table("Listing")
+    # upsert: if this listing_id does not exist then insert, otherwise update
+    sql = "insert into listing (i_listing_id, s_google_place_id, s_session_id, s_listing_name, " \
+                                "d_star_rating, s_room_type, d_rate, i_reviews_count, i_person_capacity, " \
+                                "b_is_business_travel_ready, s_lat, s_lng, b_is_new_listing, " \
+                                "b_can_instant_book, s_picture_url, s_localized_city, i_picture_count, " \
+                                "i_host_id, s_host_name, i_beds, i_bedrooms, dt_insert) " \
+            "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+            "on conflict (i_listing_id, s_google_place_id) " \
+            "do update set (s_session_id, s_listing_name, d_star_rating, s_room_type, d_rate, i_reviews_count, " \
+                            "i_person_capacity, b_is_business_travel_ready, s_lat, l_lng, b_is_new_listing, " \
+                            "b_can_instant_book, s_picture_url, s_localized_city, i_picture_count, " \
+                            "i_host_id, s_host_name, i_beds, i_bedrooms, dt_insert) " \
+                            " = " \
+                            "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
-    key = {'listing_id': int(listing_id)}
+    params = (listing_id, place_id, session_id, listing_name, 
+                star_rating, room_type, rate, reviews_count, person_capacity,
+                is_business_travel_ready, lat, lng, is_new_listing, 
+                can_instant_book, picture_url, localized_city, picture_count,
+                host_id, host_name, beds, bedrooms, str(datetime.datetime.now()),
+                session_id, listing_name, 
+                star_rating, room_type, rate, reviews_count, person_capacity,
+                is_business_travel_ready, lat, lng, is_new_listing, 
+                can_instant_book, picture_url, localized_city, picture_count,
+                host_id, host_name, beds, bedrooms, str(datetime.datetime.now()))
 
-    update_expr = 'SET session_id = :session_id, ' \
-                    'star_rating = :star_rating, ' \
-                    'listing_name = :listing_name, ' \
-                    'beds = :beds, ' \
-                    'bedrooms = :bedrooms, ' \
-                    'room_type = :room_type, ' \
-                    'rate = :rate, ' \
-                    'reviews_count = :reviews_count, ' \
-                    'person_capacity = :person_capacity, ' \
-                    'is_business_travel_ready = :is_business_travel_ready, ' \
-                    'lat = :lat, ' \
-                    'lng = :lng, ' \
-                    'is_new_listing = :is_new_listing, ' \
-                    'can_instant_book = :can_instant_book, ' \
-                    'picture_url = :picture_url, ' \
-                    'instant_bookable = :instant_bookable, ' \
-                    'localized_city = :localized_city, ' \
-                    'picture_count = :picture_count, ' \
-                    'host_name = :host_name, ' \
-                    'host_id = :host_id'
-
-    expr_attr_val = {
-        ":session_id": str(session_id),
-        ":star_rating": str(listing['listing']['star_rating']),
-        ":listing_name": str(listing['listing']['name']),
-        ":beds": str(listing['listing']['beds']),
-        ":bedrooms": str(listing['listing']['bedrooms']),
-        ":room_type": str(listing['listing']['room_type']),
-        ":rate": str(listing['pricing_quote']['rate']['amount']),
-        ":reviews_count": str(listing['listing']['reviews_count']),
-        ":person_capacity": str(listing['listing']['person_capacity']),
-        ":is_business_travel_ready": str(listing['listing']['is_business_travel_ready']),
-        ":lat": str(listing['listing']['lat']),
-        ":lng": str(listing['listing']['lng']),
-        ":is_new_listing": str(listing['listing']['is_new_listing']),
-        ":can_instant_book": str(listing['pricing_quote']['can_instant_book']),
-        ":picture_url": str(listing['listing']['picture_url']),
-        ":instant_bookable": str(listing['listing']['instant_bookable']),
-        ":localized_city": str(listing['listing']['localized_city']),
-        ":picture_count": str(listing['listing']['picture_count']),
-        ":host_name": str(listing['listing']['primary_host']['first_name']),
-        ":host_id": str(listing['listing']['primary_host']['id'])
-    }
-
-    table.update_item(Key=key, 
-                    UpdateExpression=update_expr, 
-                    ExpressionAttributeValues=expr_attr_val)
-                 
-
-
+    utils.pg_sql(sql, params)
+    
 # save/update listing detail
 def save_listing_detail(session_id, listing):
     listing_id = listing['listing']['id']
 
-    utils.log(session_id, 'save_listing_detail', 'Saving listing detail for listing_id %s' % listing_id, None, None, listing_id)
+    utils.log(session_id, 'save_listing_detail', 'Saving listing detail for listing_id %s' % listing_id)
 
-    table = vars.dynamodb.Table("Listing")
+    d_bathrooms = listing['listing']['bathrooms']
+    s_bed_type = listing['listing']['bed_type']
+    b_has_availability = listing['listing']['has_availability']
+    i_min_nights = listing['listing']['min_nights']
+    s_neighborhood = listing['listing']['neighborhood']
+    s_property_type = listing['listing']['property_type']
+    s_zipcode = listing['listing']['zipcode']
+    s_calendar_updated_at = listing['listing']['calendar_updated_at']
+    s_check_in_time = listing['listing']['check_in_time']
+    s_check_out_time = listing['listing']['check_out_time']
+    i_cleaning_fee = listing['listing']['cleaning_fee_native']
+    s_description = listing['listing']['description'],
+    b_is_location_exact = listing['listing']['is_location_exact']
 
-    # build listing json item
-    key = {'listing_id': int(listing_id)}
+    sql = "update listing " \
+            "set (d_bathrooms, s_bed_type, b_has_availability, i_min_nights, s_neighborhood, " \
+                "s_property_type, s_zipcode, s_calendar_updated_at, s_check_in_time, " \
+                "s_check_out_time, i_cleaning_fee, s_description, b_is_location_exact) " \
+            " = " \
+                "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
-    update_expr = 'SET session_id = :session_id, ' \
-                    'bathrooms = :bathrooms, ' \
-                    'has_availability = :has_availability, ' \
-                    'min_nights = :min_nights, ' \
-                    'neighborhood = :neighborhood, ' \
-                    'property_type = :property_type, ' \
-                    'zipcode = :zipcode, ' \
-                    'bed_type = :bed_type, ' \
-                    'calendar_updated_at = :calendar_updated_at, ' \
-                    'check_in_time = :check_in_time, ' \
-                    'check_out_time = :check_out_time, ' \
-                    'cleaning_fee_native = :cleaning_fee_native, ' \
-                    'description = :description, ' \
-                    'is_location_exact = :is_location_exact, ' \
-                    'insert_date = :insert_date'
+    params = (d_bathrooms, s_bed_type, b_has_availability, i_min_nights, s_neighborhood,
+                s_property_type, s_zipcode, s_calendar_updated_at, s_check_in_time,
+                s_check_out_time, i_cleaning_fee, s_description, b_is_location_exact)
 
-    expr_attr_val = {
-        ":session_id": str(session_id),
-        ":bathrooms": str(listing['listing']['bathrooms']),
-        ":has_availability": str(listing['listing']['has_availability']),
-        ":min_nights": str(listing['listing']['min_nights']),
-        ":neighborhood": str(listing['listing']['neighborhood']),
-        ":property_type": str(listing['listing']['property_type']),
-        ":zipcode": str(listing['listing']['zipcode']),
-        ":bed_type": str(listing['listing']['bed_type']),
-        ":calendar_updated_at": str(listing['listing']['calendar_updated_at']),
-        ":check_in_time": str(listing['listing']['check_in_time']),
-        ":check_out_time": str(listing['listing']['check_out_time']),
-        ":cleaning_fee_native": str(listing['listing']['cleaning_fee_native']),
-        ":description": listing['listing']['description'],
-        ":is_location_exact": str(listing['listing']['is_location_exact']),
-        ":insert_date": str(datetime.datetime.now())
-    }
-
-    table.update_item(Key=key, 
-                        UpdateExpression=update_expr, 
-                        ExpressionAttributeValues=expr_attr_val)
-
-    print '\nSuccessfully inserted:\n'
-    print expr_attr_val
-    print '\n'
+    utils.pg_sql(sql, params)
 
     return True
 
 #save/update calendar detail for a listing
 def save_calendar_detail(session_id, listing_id, calendar_months):
-    utils.log(session_id, 'save_calendar_detail', 'Saving calendar detail for listing_id %s' % listing_id, None, None, listing_id)
-
-    table = vars.dynamodb.Table("Calendar")
-
-    update_expr = 'SET session_id = :session_id, ' \
-                    'price = :price, ' \
-                    'available = :available, ' \
-                    'insert_date = :insert_date'
+    utils.log(session_id, 'save_calendar_detail', 'Saving calendar detail for listing_id %s' % listing_id)
 
     i = 0
     for month in calendar_months:
         for day in month['days']:
 
-            key = {'listing_id': int(listing_id),
-                    'booking_date': str(day['date'])}
+            booking_date = day['date']
+            available = day['available']
+            price = day['price']['local_price']
 
-            expr_attr_val = {
-                ":session_id": str(session_id),
-                ":available": day['available'],
-                ":price": day['price']['local_price'],
-                ":insert_date": str(datetime.datetime.now())
-            }
-
-            table.update_item(Key=key, 
-                                UpdateExpression=update_expr, 
-                                ExpressionAttributeValues=expr_attr_val)
+            # call the postgres function created to check to see if something already exists before inserting
+            sql = "INSERT INTO calendar(i_listing_id, dt_booking_date, b_available, i_price, s_session_id, dt_insert) " \
+                "VALUES (%s, %s, %s, %s, %s, now()) " \
+                "ON CONFLICT (i_listing_id, dt_booking_date) " \
+                "DO UPDATE SET (b_available, i_price, s_session_id, dt_insert) = (%s, %s, %s, now());"
+            params = (listing_id, booking_date, available, price, session_id, available, price, session_id)
 
             i += 1
 
-    utils.log(session_id, 'save_calendar_detail', 'Inserted %s calendar items into db' % i, None, None, listing_id)
+    utils.log(session_id, 'save_calendar_detail', 'Inserted %s calendar items into db' % i)
 
     return True
 
 # queue a calendar request for every listing with a specific session_id
 def queue_calendar_sqs_for_session(session_id):
     # get all listings with this session id
-    table = vars.dynamodb.Table("Listing")
-    r = table.scan(FilterExpression="session_id = :session_id", ExpressionAttributeValues={":session_id": str(session_id)})
-    if r['Count'] == 0:
+    
+    listings = utils.pg_sql("select * from listing where s_session_id = %s")
+    if len(listings) == 0:
         utils.log(session_id, 'queue_calendar_sqs_for_session', 'No listings returned for session_id = %s' % session_id)
     else:
 
         # loop through listings and queue a calendar sqs
         i = 0
-        for listing in r['Items']:
+        for listing in listings:
             insert_sqs_listing_calendar(session_id, listing['listing_id'])
             i += 1
             
