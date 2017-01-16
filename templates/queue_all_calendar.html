@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block body %}
+
+        {% if queued != False %}
+            <div class="alert alert-info" role="alert">Queued {{ queued_count }} Calendar SQS messages for Session {{ queued }}</div>
+        {% endif %}
+
+        <h1>There are {{ count }} sessions in database</h1>
+        <br />
+
+        <div>
+        <table class="table">
+        <tr>
+            <th>Session Id</th>
+            <th>Place</th>
+            <th>Date</th>
+        </tr>
+        {% for session in sessions %}
+            <tr>
+                <td><a href="/queue_all_calendar/{{ session.session_id }}">{{ session.session_id }}</a></td>
+                <td>{{ session.place_name }}</td>
+                <td>{{ session.insert_date }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+        </div>
+
+    
+
+{% endblock %}

@@ -14,32 +14,68 @@
     <br />
 
     <a href="javascript:js_process_queue.get_sqs_message();" class="btn btn-primary">Get Queue Results</a>
+    &nbsp;
+    <a href="javascript:go_loop=true;js_process_queue.loop_it();" class="btn btn-default">Loop It</a>
+    &nbsp;
+    <a href="javascript:js_process_queue.stop_go_loop();" class="btn btn-default">Stop Looping</a>
+
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 
 {% endblock %}
 
 {% block script %}
     
     <script>
+    go_loop = false;
+
     const js_process_queue = {
+
         init: function() {
             js_process_queue.get_sqs_message()
         },
 
         get_sqs_message: function() {
-            $('#results').append('<p>Retrieving a message from queue</p>');
+            console.log('Preparing to get a message from queue');
+
+            $('#results').append('<p><b>Retrieving a message from queue</b></p>');
             //call a page via jquery to do this
-            $.getJSON('/_process_place_queue', function(data) {
-                $('#results').append('<p>' + data + '</p>');
-            });
+            $.getJSON('/_process_place_queue')
+                .done(function(data) {
+                    $('#results').append('<p>' + data + '</p>');
+
+                    if (go_loop == true) {
+                        setTimeout(function() {
+                            js_process_queue.loop_it();    
+                        }, 3000);
+                    }
+                    
+                })
+                .fail(function( jqxhr, textStatus, error ) {
+                    var err = textStatus + ", " + error;
+                    $('#results').append('<p>' + err + '</p>');
+                    
+                });
         },
 
-        write_sqs_message: function(message) {
+        loop_it: function() {
 
+            go_loop = true;
+            js_process_queue.get_sqs_message();
+            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+                    
+        },
+
+        stop_go_loop: function() {
+            go_loop = false;
+            $('#results').append('<p>Stopped looping</p>');
         }
     };
 
     $(document).ready(function() {
-        js_process_queue.init();
+        //js_process_queue.init();
     });
     </script>
 

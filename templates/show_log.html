@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 {% block body %}
 
+<style>
+body .container { width: 100%; }
+</style>
     
         <h1>Log</h1>
         <br />
@@ -26,15 +29,17 @@
             <th>action</th>
             <th>elapsed_time</th>
             <th>place_name</th>
+            <th>url</th>
         </tr>
         {% for log in logs %}
-            <tr>
+            <tr{% if log.function == "page show_log()" %} class="info"{% endif %}>
                 <td>{{ log.session_id }}</td>
                 <td nowrap>{{ log.insert_date }}</td>
-                <td>{{ log.function }}</td>
-                <td>{{ log.action }}</td>
+                <td nowrap>{{ log.function }}</td>
+                <td nowrap>{{ log.action }}</td>
                 <td>{{ log.elapsed_time }}</td>
                 <td>{{ log.place_name }}</td>
+                <td nowrap>{{ log.url }}</td>
             </tr>
         {% endfor %}
         </table>
