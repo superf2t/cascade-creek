@@ -641,7 +641,7 @@ def insert_session(session_id, place_id, place_name):
 # get a listing from the database
 def get_listing(session_id, listing_id):
 
-    sql = "select * from listing where listing_id = %s and session_id = %s"
+    sql = "select * from listing where i_listing_id = %s and s_session_id = %s"
     params = (listing_id, session_id)
     response = utils.pg_sql(sql, params)
 
@@ -670,10 +670,10 @@ def save_listings(place_id, session_id, listings):
         # 3. if session_id is same as this session id, 
         #       do not re-save, do not insert detail/calendar
 
-        l = get_listing(session_id, listing_id)
+        _l = get_listing(session_id, listing_id)
         
         # no listing is returned, this is a new one, so insert
-        if l['Count'] == 0:
+        if len(_l) == 0:
             # insert
             utils.log(session_id, 'save_listings', 'Inserting new listing id %s' % listing_id)
             insert_listing(place_id, session_id, listing)
@@ -687,7 +687,7 @@ def save_listings(place_id, session_id, listings):
         # if a listing is returned...
         else:
             # but does not have the same session_id, then insert
-            if session_id != l['Items'][0]['session_id']:
+            if session_id != _l[0]['s_session_id']:
                 # insert
                 utils.log(session_id, 'save_listings', 'Updating listing id %s' % listing_id)
                 insert_listing(place_id, session_id, listing)
@@ -742,7 +742,7 @@ def insert_listing(place_id, session_id, listing):
             "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
             "on conflict (i_listing_id, s_google_place_id) " \
             "do update set (s_session_id, s_listing_name, d_star_rating, s_room_type, d_rate, i_reviews_count, " \
-                            "i_person_capacity, b_is_business_travel_ready, s_lat, l_lng, b_is_new_listing, " \
+                            "i_person_capacity, b_is_business_travel_ready, s_lat, s_lng, b_is_new_listing, " \
                             "b_can_instant_book, s_picture_url, s_localized_city, i_picture_count, " \
                             "i_host_id, s_host_name, i_beds, i_bedrooms, dt_insert) " \
                             " = " \
@@ -786,11 +786,12 @@ def save_listing_detail(session_id, listing):
                 "s_property_type, s_zipcode, s_calendar_updated_at, s_check_in_time, " \
                 "s_check_out_time, i_cleaning_fee, s_description, b_is_location_exact) " \
             " = " \
-                "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" \
+            "where i_listing_id = %s"
 
     params = (d_bathrooms, s_bed_type, b_has_availability, i_min_nights, s_neighborhood,
                 s_property_type, s_zipcode, s_calendar_updated_at, s_check_in_time,
-                s_check_out_time, i_cleaning_fee, s_description, b_is_location_exact)
+                s_check_out_time, i_cleaning_fee, s_description, b_is_location_exact, listing_id)
 
     utils.pg_sql(sql, params)
 
@@ -814,6 +815,8 @@ def save_calendar_detail(session_id, listing_id, calendar_months):
                 "ON CONFLICT (i_listing_id, dt_booking_date) " \
                 "DO UPDATE SET (b_available, i_price, s_session_id, dt_insert) = (%s, %s, %s, now());"
             params = (listing_id, booking_date, available, price, session_id, available, price, session_id)
+
+            utils.pg_sql(sql, params)
 
             i += 1
 
