@@ -49,7 +49,7 @@ def initiate_place_scrape(place_id):
     session_id = get_session_id(place_id, place.name)
     insert_sqs_place_message(session_id, place)
 
-    #redirect to get_listings_airbnb with session_id
+    #redirect with session_id
     return redirect("/process_place_queue")
 
 # get search listings from airbnb
@@ -162,7 +162,7 @@ def _process_place_queue():
     
     #try:
     # is
-    
+
     if message == '':
         utils.log(None, '_process_place_queue', 'No messages found in queue')
 
@@ -253,7 +253,7 @@ def _process_place_queue():
 
             delete_sqs_place_message(message)
 
-            output = 'Listing details saved/updated'
+            output = 'Listing details saved/updated, listing_id: %s' % listing['listing']['id']
 
 
         # if this is a calendar request
@@ -321,7 +321,7 @@ def get_place_search(session_id, place_search_url):
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'get_place_search', 'Get airbnb listings page', place_search_url, elapsed_time)
+    utils.log(session_id, 'get_place_search', 'api call', place_search_url, elapsed_time)
 
     return result.json()
 
@@ -375,7 +375,9 @@ def get_sessions():
     utils.log(None, 'get_sessions', 'getting all sessions')
 
 
-    response = utils.pg_sql("select * from session")
+    response = utils.pg_sql("select s.s_session_id, s.s_google_place_id, p.s_name, s.dt_insert " \
+                            "from session s " \
+                                "join place p on s.s_google_place_id = p.s_google_place_id")
     return response
 
 
@@ -639,10 +641,10 @@ def insert_session(session_id, place_id, place_name):
 
 
 # get a listing from the database
-def get_listing(session_id, listing_id):
+def get_listing(listing_id):
 
-    sql = "select * from listing where i_listing_id = %s and s_session_id = %s"
-    params = (listing_id, session_id)
+    sql = "select * from listing where i_listing_id = %s"
+    params = (listing_id,)
     response = utils.pg_sql(sql, params)
 
     if len(response) == 0:
@@ -662,21 +664,13 @@ def save_listings(place_id, session_id, listings):
     for listing in listings:
         listing_id = listing['listing']['id']
 
-        
-
-        # 1. get listing_id from db
-        # 2. if empty data set or session_id <> session_id
-        #       insert, and queue up detail and calendar
-        # 3. if session_id is same as this session id, 
-        #       do not re-save, do not insert detail/calendar
-
         _l = get_listing(session_id, listing_id)
         
         # no listing is returned, this is a new one, so insert
         if len(_l) == 0:
             # insert
-            utils.log(session_id, 'save_listings', 'Inserting new listing id %s' % listing_id)
-            insert_listing(place_id, session_id, listing)
+            utils.log(session_id, 'save_listings', 'Upserting new listing id %s' % listing_id)
+            upsert_listing(place_id, session_id, listing)
 
             # queue a listing detail search
             insert_sqs_listing_detail_page(session_id, listing_id)
@@ -686,22 +680,8 @@ def save_listings(place_id, session_id, listings):
 
         # if a listing is returned...
         else:
-            # but does not have the same session_id, then insert
-            if session_id != _l[0]['s_session_id']:
-                # insert
-                utils.log(session_id, 'save_listings', 'Updating listing id %s' % listing_id)
-                insert_listing(place_id, session_id, listing)
-
-                # queue a listing detail search
-                insert_sqs_listing_detail_page(session_id, listing_id)
-                insert_sqs_listing_calendar(session_id, listing_id)
-
-                i += 1
-            
-            # and has the same session_id, then do not re-insert
-            else:
-                # already inserted this listing in this session
-                utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id))
+            # already inserted this listing in this session
+            utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id))
 
         
 
@@ -711,7 +691,7 @@ def save_listings(place_id, session_id, listings):
 
     return i
 
-def insert_listing(place_id, session_id, listing):
+def upsert_listing(place_id, session_id, listing):
     
     listing_id = listing['listing']['id']
     listing_name = listing['listing']['name']
@@ -746,16 +726,15 @@ def insert_listing(place_id, session_id, listing):
                             "b_can_instant_book, s_picture_url, s_localized_city, i_picture_count, " \
                             "i_host_id, s_host_name, i_beds, i_bedrooms, dt_insert) " \
                             " = " \
-                            "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                            "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
 
     params = (listing_id, place_id, session_id, listing_name, 
                 star_rating, room_type, rate, reviews_count, person_capacity,
                 is_business_travel_ready, lat, lng, is_new_listing, 
                 can_instant_book, picture_url, localized_city, picture_count,
                 host_id, host_name, beds, bedrooms, str(datetime.datetime.now()),
-                session_id, listing_name, 
-                star_rating, room_type, rate, reviews_count, person_capacity,
-                is_business_travel_ready, lat, lng, is_new_listing, 
+                session_id, listing_name, star_rating, room_type, rate, reviews_count, 
+                person_capacity, is_business_travel_ready, lat, lng, is_new_listing, 
                 can_instant_book, picture_url, localized_city, picture_count,
                 host_id, host_name, beds, bedrooms, str(datetime.datetime.now()))
 

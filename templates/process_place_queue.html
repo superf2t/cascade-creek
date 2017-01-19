@@ -13,11 +13,7 @@
     <br />
     <br />
 
-    <a href="javascript:js_process_queue.get_sqs_message();" class="btn btn-primary">Get Queue Results</a>
-    &nbsp;
-    <a href="javascript:go_loop=true;js_process_queue.loop_it();" class="btn btn-default">Loop It</a>
-    &nbsp;
-    <a href="javascript:js_process_queue.stop_go_loop();" class="btn btn-default">Stop Looping</a>
+    <a href="javascript:go_loop=true;js_process_queue.loop_it();" class="btn btn-primary">Loop It</a>
 
     <br/>
     <br/>
@@ -30,6 +26,8 @@
     
     <script>
     go_loop = false;
+    last_data = '';
+    same_results = 0;
 
     const js_process_queue = {
 
@@ -46,23 +44,46 @@
                 .done(function(data) {
                     $('#results').append('<p>' + data + '</p>');
 
-                    if (go_loop == true) {
+                    //is this data the same as the last data? (probably an error or no queue items left)
+                    if (data == last_data) {
+                        console.log('data == last_data, "' + data + '"');
+                        same_results += 1;
+                    }
+                    else {
+                        console.log('data != last_data');
+                        console.log('data = ' + data);
+                        console.log('last_data = ' + last_data);
+                        last_data = data;
+                        same_results = 0;
+                    }
+
+                    console.log('count same_results: ' + same_results + '\n');
+
+                    //re-queue the next pull as long as we haven't had 5 of the same items in a row
+                    if (same_results < 5) {
                         setTimeout(function() {
-                            js_process_queue.loop_it();    
+                            js_process_queue.loop_it();
                         }, 3000);
                     }
-                    
                 })
-                .fail(function( jqxhr, textStatus, error ) {
-                    var err = textStatus + ", " + error;
-                    $('#results').append('<p>' + err + '</p>');
-                    
+                .fail(function (err) {
+                    $('#results').append('<p>' + err.message + '</p>');
+                    last_data = err.message;
+                    same_results += 1;
+
+                    //re-queue the next pull as long as we haven't had 5 of the same items in a row
+                    if (same_results < 5) {
+                        setTimeout(function() {
+                            js_process_queue.loop_it();
+                        }, 3000);
+                    }    
                 });
+        
         },
 
         loop_it: function() {
 
-            go_loop = true;
+            //go_loop = true;
             js_process_queue.get_sqs_message();
             $("html, body").animate({ scrollTop: $(document).height() }, "slow");
                     
