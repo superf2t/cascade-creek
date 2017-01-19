@@ -31,7 +31,7 @@ body .container { width: 100%; }
             <th>url</th>
         </tr>
         {% for log in logs %}
-            <tr{% if log.s_function == "page show_log()" %} class="info"{% endif %}>
+            <tr{% if log.s_function == "show_log_page" %} class="info"{% endif %}>
                 <td>{{ log.s_session_id }}</td>
                 <td nowrap>{{ log.dt_insert }}</td>
                 <td nowrap>{{ log.s_function }}</td>

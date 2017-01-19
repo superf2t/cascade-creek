@@ -26,25 +26,25 @@ app = Flask(__name__)
 #########
 
 @app.route("/")
-def hello_world():
-    utils.log(None, 'page hello_world', 'page load')
+def hello_world_page():
+    utils.log(None, 'hello_world_page', 'page load')
     places = get_places()
     return render_template("home.html", places=places, count=len(places))
 
 @app.route("/add_place")
-def add_place():
-    utils.log(None, 'page add_place', 'page load')
+def add_place_page():
+    utils.log(None, 'add_place_page', 'page load')
     return render_template("add_place.html")
 
 @app.route("/view_place/<place_id>")
-def view_place(place_id):
-    utils.log(None, 'page view_place(%s)' % place_id, None)
+def view_place_page(place_id):
+    utils.log(None, 'view_place_page(%s)' % place_id, None)
     place = get_place(place_id)
     return render_template("view_place.html", place=place)
 
 @app.route("/view_place/<place_id>/queue")
-def initiate_place_scrape(place_id):
-    utils.log(None, 'page initiate_place_scrape(%s)' % place_id, 'page load')
+def initiate_place_scrape_page(place_id):
+    utils.log(None, 'initiate_place_scrape_page(%s)' % place_id, 'page load')
     place = get_place(place_id)
     session_id = get_session_id(place_id, place.name)
     insert_sqs_place_message(session_id, place)
@@ -54,13 +54,13 @@ def initiate_place_scrape(place_id):
 
 # get search listings from airbnb
 @app.route("/process_place_queue")
-def process_place_queue():
-    utils.log(None, 'page process_place_queue', 'page load')
+def process_place_queue_page():
+    utils.log(None, 'process_place_queue_page', 'page load')
     return render_template("process_place_queue.html")
 
 @app.route("/queue_all_calendar")
-def queue_all_calendar():
-    utils.log(None, 'page queue_all_calendar', 'page load')
+def queue_all_calendar_page():
+    utils.log(None, 'queue_all_calendar_page', None)
     sessions = get_sessions()
     sessions_count = len(sessions)
 
@@ -73,13 +73,13 @@ def queue_all_calendar():
     return render_template("queue_all_calendar.html", sessions=sessions, count=sessions_count, queued=queued, queued_count=queued_count)
 
 @app.route("/queue_all_calendar/<session_id>")
-def queue_all_calendar_go(session_id):
+def queue_all_calendar_id_page(session_id):
     count = queue_calendar_sqs_for_session(session_id)
     return redirect("/queue_all_calendar?session_id=%s&count=%s" % (session_id, count))
 
 @app.route('/log')
-def show_log(minutes=30):
-    utils.log(None, 'page show_log()', 'page load')
+def show_log_page(minutes=30):
+    utils.log(None, 'show_log_page', None)
 
     if request.args.get('minutes') == 'recent':
         minutes = 9999
@@ -99,15 +99,15 @@ def show_log(minutes=30):
 
 # call google geocode service and get the name and coords for a location
 @app.route("/_get_place/<place>")
-def get_place_google(place):
-    utils.log(None, 'get_place_google', 'place_id = %s' % place)
+def get_place_google_api(place):
+    utils.log(None, 'get_place_google_api', 'place_id = %s' % place)
 
     place = get_google_place(place)
 
     # see if this place already exists in the db
-    response = utils.pg_sql("select * from place where s_google_place_id = %s", (place.place_id,))
-    # if an Item was returned, this place is already in the db
+    response = get_place_by_id(place.place_id) 
     
+    # if an Item was returned, this place is already in the db    
     if len(response) == 0:
         return jsonify(place.img_url)
     else:
@@ -116,52 +116,68 @@ def get_place_google(place):
 
 # insert a place into database
 @app.route("/_insert_place/", methods=["POST"])
-def insert_place():
-    utils.log(None, 'insert_place', None)
+def insert_place_api():
+    utils.log(None, 'insert_place_api', None)
 
     str_place = request.form["hidden_place"]
     
     place = get_google_place(str_place)
-
-    sql = "insert into place (s_google_place_id, s_name, s_lat, s_lng, s_ne_lat, s_ne_lng, s_sw_lat, s_sw_lng, dt_insert) " \
-            "values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    params = (place.place_id, place.name, place.lat, place.lng, place.ne_lat, place.ne_lng, place.sw_lat, place.sw_lng, place.insert_date)
-    utils.pg_sql(sql, params)
+    insert_place(place)
 
     return redirect("/")
 
 
 @app.route("/_process_place_queue")
-def _process_place_queue():
-    utils.log(None, '_process_place_queue', 'Preparing to process queue')
+def process_place_queue_api():
+    utils.log(None, 'process_place_queue_api', 'Preparing to process queue')
+    output = get_a_message_and_process_it()        
 
+    return jsonify(output)
+
+
+####################
+# HELPER FUNCTIONS #
+####################
+
+# get one place from db
+def get_place(place_id):
+    utils.log(None, 'get_place', 'get one place from db')
+
+    p = Place()
+    p.get_place_from_id(place_id)
+    return p
+
+#if this function is called, we will insert a row into the database to log the session
+def get_session_id(place_id, place_name):
+    utils.log(None, 'get_session_id', 'get fresh session_id')
+    session_id = utils.get_random_string(5)
+    insert_session(session_id, place_id, place_name)
+    return session_id
+
+# do what the name says
+def get_a_message_and_process_it():
     message = get_one_sqs_place_message()
 
-    # ? is this a place?
-    #   a: yes, this is a geo coord place
+    # ? is this a place? Yes =
     #     get results
     #       ? are there more than 300 reults?
     #         break out quadrants, re-queue
     #       ? are there less than 300 results?
     #         save/queue the listings
-    # ? is this a listings page?
-    #   a: yes, this is a listings page
+    # ? is this a listings page? Yes =
     #     get the listings page
     #       loop through every listing on this page and
     #         save/update property
-    #         queue listing
-    # ? is this a listing
-    #   a: yes, this is a listing
+    #         ? is this a new listing? Yes =
+    #           queue listing
+    #           queue calendar
+    # ? is this a listing? Yes =
     #     get the listing
     #       update the listing with necessary info
     #       queue a calendar request
-    # ? is this a listing calendar request?
-    #   yes, this is a listing calendar request
+    # ? is this a listing calendar request? Yes = 
     #     get the availability
     #     save/update the availability
-    
-    #try:
-    # is
 
     if message == '':
         utils.log(None, '_process_place_queue', 'No messages found in queue')
@@ -274,119 +290,8 @@ def _process_place_queue():
             utils.log(session_id, '_process_place_queue', 'Unknown value for message.message_attributes[type][StringValue]')
 
             output = 'm_type == ??? not sure what kind of sqs message this was ???'
-        
-
-    return jsonify(output)
-
-
-#######################
-# 3rd PARTY API CALLS #
-#######################
-
-# call google api and return a place
-def get_google_place(place):
-    time_start = time.time()
-
-    # call google api and bring it on back
-    url = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (place, vars.google_api_key_geocode)
-    google_result = requests.get(url)
-    """
-    r.status_code               200
-    r.headers["content-type"]   application/json; charset=UTF-8
-    r.encoding                  UTF-8
-    r.content                   json returned from api
-    r.json()                    json returned from api
-    """
-
-    r = google_result.json()["results"][0]
-
-    p = Place()
-    place = Place(r["place_id"], r["formatted_address"], 
-                    r["geometry"]["location"]["lat"], r["geometry"]["location"]["lng"], 
-                    r["geometry"]["bounds"]["northeast"]["lat"], r["geometry"]["bounds"]["northeast"]["lng"],
-                    r["geometry"]["bounds"]["southwest"]["lat"], r["geometry"]["bounds"]["southwest"]["lng"])
-
-    #log
-    elapsed_time = time.time() - time_start
-    utils.log(None, 'get_google_place', 'Getting place info from G', url, elapsed_time)
     
-    return place
-
-# call airbnb search page and return listings
-def get_place_search(session_id, place_search_url):    
-    time_start = time.time()
-
-    print '\nplace_search_url:\n%s\n' % place_search_url
-    result = requests.get(place_search_url)
-
-    #log
-    elapsed_time = time.time() - time_start
-    utils.log(session_id, 'get_place_search', 'api call', place_search_url, elapsed_time)
-
-    return result.json()
-
-
-
-###########
-# HELPERS #
-###########
-
-# get one place from db
-def get_place(place_id):
-    utils.log(None, 'get_place', 'get one place from db')
-
-    p = Place()
-    p.get_place_from_id(place_id)
-    return p
-
-# get all places from db, return an array of class Place
-def get_places():
-    utils.log(None, 'get_places', 'get all places from db')
-
-    places = []
-
-    results = utils.pg_sql("select * from place")
-
-    for place in results:
-        p = Place(place["s_google_place_id"], place["s_name"], place["s_lat"], place["s_lng"], place["s_ne_lat"], place["s_ne_lng"], place["s_sw_lat"], place["s_sw_lng"])
-        places.append(p)
-    
-
-    return places
-
-# get log items
-def get_log(num_items=10000, time_delta=30):
-    results_after = datetime.datetime.now() - datetime.timedelta(minutes=time_delta)
-    response = utils.pg_sql("select * from qbnb_log where dt_insert > %s order by dt_insert", (str(results_after),))
-    
-    return response
-
-# get most recent log items
-def get_log_most_recent():
-    utils.log(None, 'get_log_most_recent', 'get recent log items')
-
-    response = utils.pg_sql("select * from (select * from qbnb_log order by dt_insert desc limit 500) t1 order by dt_insert")
-
-    return response
-
-
-#get all existing sessions in the db
-def get_sessions():
-    utils.log(None, 'get_sessions', 'getting all sessions')
-
-
-    response = utils.pg_sql("select s.s_session_id, s.s_google_place_id, p.s_name, s.dt_insert " \
-                            "from session s " \
-                                "join place p on s.s_google_place_id = p.s_google_place_id")
-    return response
-
-
-#if this function is called, we will insert a row into the database to log the session
-def get_session_id(place_id, place_name):
-    utils.log(None, 'get_session_id', 'get fresh session_id')
-    session_id = utils.get_random_string(5)
-    insert_session(session_id, place_id, place_name)
-    return session_id
+    return output
 
 
 #break a place up into 4 new quadrants, save each to the queue
@@ -457,8 +362,97 @@ def insert_sqs_listing_overview_pages(session_id, listings_count, place):
         if this_page > total_pages:
             break
 
-    return total_pages
+    return total_pages   
+
+
+
+# loop through json from /search and save all listings to db
+def save_listings(place_id, session_id, listings):
+    utils.log(session_id, 'save_listings', 'loop through and save listings')
+
+    time_start = time.time()
+
+    i = 0
+    for listing in listings:
+        listing_id = listing['listing']['id']
+
+        _l = get_listing(session_id, listing_id)
         
+        # no listing is returned, this is a new one, so insert
+        if len(_l) == 0:
+            # insert
+            utils.log(session_id, 'save_listings', 'Upserting new listing id %s' % listing_id)
+            upsert_listing(place_id, session_id, listing)
+
+            # queue a listing detail search
+            insert_sqs_listing_detail_page(session_id, listing_id)
+            insert_sqs_listing_calendar(session_id, listing_id)
+
+            i += 1
+
+        # if a listing is returned...
+        else:
+            # already inserted this listing in this session
+            utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id))
+
+        
+
+    #log
+    elapsed_time = time.time() - time_start
+    utils.log(session_id, 'save_listings', 'Inserted %s items into Listing table' % i, None, elapsed_time)
+
+    return i
+
+
+#######################
+# 3rd PARTY API CALLS #
+#######################
+
+# call google api and return a place
+def get_google_place(place):
+    time_start = time.time()
+
+    # call google api and bring it on back
+    url = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (place, vars.google_api_key_geocode)
+    google_result = requests.get(url)
+    """
+    r.status_code               200
+    r.headers["content-type"]   application/json; charset=UTF-8
+    r.encoding                  UTF-8
+    r.content                   json returned from api
+    r.json()                    json returned from api
+    """
+
+    r = google_result.json()["results"][0]
+
+    p = Place()
+    place = Place(r["place_id"], r["formatted_address"], 
+                    r["geometry"]["location"]["lat"], r["geometry"]["location"]["lng"], 
+                    r["geometry"]["bounds"]["northeast"]["lat"], r["geometry"]["bounds"]["northeast"]["lng"],
+                    r["geometry"]["bounds"]["southwest"]["lat"], r["geometry"]["bounds"]["southwest"]["lng"])
+
+    #log
+    elapsed_time = time.time() - time_start
+    utils.log(None, 'get_google_place', 'Getting place info from G', url, elapsed_time)
+    
+    return place
+
+# call airbnb search page and return listings
+def get_place_search(session_id, place_search_url):    
+    time_start = time.time()
+
+    print '\nplace_search_url:\n%s\n' % place_search_url
+    result = requests.get(place_search_url)
+
+    #log
+    elapsed_time = time.time() - time_start
+    utils.log(session_id, 'get_place_search', 'api call', place_search_url, elapsed_time)
+
+    return result.json()
+
+#################
+# SQS FUNCTIONS #
+#################
 
 def insert_sqs_listing_overview_message(session_id, place, page):
     time_start = time.time()
@@ -631,6 +625,67 @@ def delete_sqs_place_message(message):
 
     message.delete()
 
+
+#############################
+# DATABASE HELPER FUNCTIONS #
+#############################
+
+def get_place_by_id(place_id):
+    utils.log(None, 'get_place_by_id', 'place_id: %s' % place_id)
+    response = utils.pg_sql("select * from place where s_google_place_id = %s", (place.place_id,))
+    return response
+
+# get all places from db, return an array of class Place
+def get_places():
+    utils.log(None, 'get_places', 'get all places from db')
+
+    places = []
+
+    results = utils.pg_sql("select * from place")
+
+    for place in results:
+        p = Place(place["s_google_place_id"], place["s_name"], place["s_lat"], place["s_lng"], place["s_ne_lat"], place["s_ne_lng"], place["s_sw_lat"], place["s_sw_lng"])
+        places.append(p)
+    
+
+    return places
+
+# get log items
+def get_log(num_items=10000, time_delta=30):
+    results_after = datetime.datetime.now() - datetime.timedelta(minutes=time_delta)
+    response = utils.pg_sql("select * from qbnb_log where dt_insert > %s order by dt_insert", (str(results_after),))
+    
+    return response
+
+# get most recent log items
+def get_log_most_recent():
+    utils.log(None, 'get_log_most_recent', 'get recent log items')
+
+    response = utils.pg_sql("select * from (select * from qbnb_log order by dt_insert desc limit 500) t1 order by dt_insert")
+
+    return response
+
+
+#get all existing sessions in the db
+def get_sessions():
+    utils.log(None, 'get_sessions', 'getting all sessions')
+
+
+    response = utils.pg_sql("select s.s_session_id, s.s_google_place_id, p.s_name, s.dt_insert " \
+                            "from session s " \
+                                "join place p on s.s_google_place_id = p.s_google_place_id")
+    return response
+
+def insert_place(place):
+    utils.log(None, 'insert_place', 'Inserting place_id: %s, name %s' % (place.s_google_place_id, place.s_name))
+
+    sql = "insert into place (s_google_place_id, s_name, s_lat, s_lng, s_ne_lat, s_ne_lng, s_sw_lat, s_sw_lng, dt_insert) " \
+            "values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    params = (place.place_id, place.name, place.lat, place.lng, place.ne_lat, place.ne_lng, place.sw_lat, place.sw_lng, place.insert_date)
+    utils.pg_sql(sql, params)
+
+    return True
+
 def insert_session(session_id, place_id, place_name):
     utils.log(session_id, 'insert_session', 'Insert row into Session table')
 
@@ -654,42 +709,6 @@ def get_listing(listing_id):
 
     return response
 
-# loop through json from /search and save all listings to db
-def save_listings(place_id, session_id, listings):
-    utils.log(session_id, 'save_listings', 'loop through and save listings')
-
-    time_start = time.time()
-
-    i = 0
-    for listing in listings:
-        listing_id = listing['listing']['id']
-
-        _l = get_listing(session_id, listing_id)
-        
-        # no listing is returned, this is a new one, so insert
-        if len(_l) == 0:
-            # insert
-            utils.log(session_id, 'save_listings', 'Upserting new listing id %s' % listing_id)
-            upsert_listing(place_id, session_id, listing)
-
-            # queue a listing detail search
-            insert_sqs_listing_detail_page(session_id, listing_id)
-            insert_sqs_listing_calendar(session_id, listing_id)
-
-            i += 1
-
-        # if a listing is returned...
-        else:
-            # already inserted this listing in this session
-            utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id))
-
-        
-
-    #log
-    elapsed_time = time.time() - time_start
-    utils.log(session_id, 'save_listings', 'Inserted %s items into Listing table' % i, None, elapsed_time)
-
-    return i
 
 def upsert_listing(place_id, session_id, listing):
     
@@ -821,6 +840,7 @@ def queue_calendar_sqs_for_session(session_id):
         utils.log(session_id, 'queue_calendar_sqs_for_session', 'Queued %s sqs calendar items' % i)
 
     return i
+
 
 #######
 # RUN #
