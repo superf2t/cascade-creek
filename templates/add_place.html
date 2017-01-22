@@ -11,7 +11,7 @@
         <div id="div_place"></div>
     </form>
     
-    <form id="form_insert" action="/_insert_place/" method="post">
+    <form id="form_insert" action="/place/_insert_place/" method="post">
         <input type="hidden" name="hidden_place" id="hidden_place">
         <input type="submit" id="button_insert" value="Insert this place into database" class="btn btn-primary hidden" />
     </form>
@@ -25,7 +25,7 @@
         else
             var place = escape($('#text_place').val());
 
-        $.getJSON('/_get_place/' + place, function() {
+        $.getJSON('/place/_get_place/' + place, function() {
             //...wait
         }).done(function(img_url) {
             if (img_url == 'google returned no results') {

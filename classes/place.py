@@ -44,17 +44,22 @@ class Place:
 
 
     def get_place_from_id(self, place_id):
-        place = utils.pg_sql("select * from place where s_google_place_id = %s", (place_id,))
-        p = place[0]
-        self.place_id = p['s_google_place_id']
-        self.name = p['s_name']
-        self.lat = p['s_lat']
-        self.lng = p['s_lng']
-        self.ne_lat = p['s_ne_lat']
-        self.ne_lng = p['s_ne_lng']
-        self.sw_lat = p['s_sw_lat']
-        self.sw_lng = p['s_sw_lng']
-        self.set_img_url()
+        sql = "select *, " \
+                "(select count(*) as listing_count from listing where s_google_place_id like %s) " \
+              "from place where s_google_place_id = %s"
+        params = (str(place_id + '%'), place_id)
+        result = utils.pg_sql(sql, params)
+        if len(result) > 0:
+            self.place_id = result[0]['s_google_place_id']
+            self.name = result[0]['s_name']
+            self.lat = result[0]['s_lat']
+            self.lng = result[0]['s_lng']
+            self.ne_lat = result[0]['s_ne_lat']
+            self.ne_lng = result[0]['s_ne_lng']
+            self.sw_lat = result[0]['s_sw_lat']
+            self.sw_lng = result[0]['s_sw_lng']
+            self.listing_count = result[0]['listing_count']
+            self.set_img_url()
 
     def set_parent_place(self, parent_place):
         self.parent = Place(parent_place.place_id, parent_place.name, parent_place.lat, parent_place.lng,

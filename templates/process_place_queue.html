@@ -13,7 +13,11 @@
     <br />
     <br />
 
-    <a href="javascript:go_loop=true;js_process_queue.loop_it();" class="btn btn-primary">Loop It</a>
+    {% if check_yo_self: %}
+        <div class="alert alert-danger">Are you VPN'd?</div>
+    {% else: %}
+        <a href="javascript:go_loop=true;js_process_queue.loop_it();" class="btn btn-primary">Loop It</a>
+    {% endif %}
 
     <br/>
     <br/>
@@ -40,7 +44,7 @@
 
             $('#results').append('<p><b>Retrieving a message from queue</b></p>');
             //call a page via jquery to do this
-            $.getJSON('/_process_place_queue')
+            $.getJSON('/queue/_process_place_queue')
                 .done(function(data) {
                     $('#results').append('<p>' + data + '</p>');
 

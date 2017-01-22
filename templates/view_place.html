@@ -1,15 +1,118 @@
 {% extends "layout.html" %}
+{% block css %}
+    <style>
+    #map {
+        height: 500px;
+        width: 100%;
+    }
+    </style>
+{% endblock %}
 {% block body %}
 
     
-    <h1>{{ place.name }}</h1>
+    <h1>{{ place.name }} &nbsp;&nbsp;&nbsp;<small><a href="/place/view_place/{{ place.place_id }}/queue" class="btn btn-primary">Scrape Airbnb</a></small></h1>
+    <h3>{{ place.listing_count }} Listings</h3>
 
-    <a href="/view_place/{{ place.place_id }}/queue" class="btn btn-primary">Scrape Airbnb</a>
     <br />
     <br />
-    <p>
-    <img src="{{ place.img_url }}" />
-    </p>
+
+    <div id="map"></div>
+        
+    <script>
+    var map;
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 3
+    });
+
+    var rectangle = new google.maps.Rectangle({
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.6,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 0,
+        map: map,
+        bounds: {
+            north: {{ place.ne_lat }},
+            south: {{ place.sw_lat }},
+            east: {{ place.ne_lng }},
+            west: {{ place.sw_lng }}
+        }
+    });
+
+    }
+
+    function getCircle(count_nights_rank, total_bookings_rank) {
+        return {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: 'green',
+            fillOpacity: Number(total_bookings_rank) / 100, //.2,
+            scale: Math.log(count_nights_rank) * 3, //Math.pow(2, count_nights_rank) / 2,
+            strokeColor: 'white',
+            strokeWeight: .5
+        };
+    }
+
+
+    function getListings() {
+        $.getJSON('/place/_listings_geojson/{{ place.place_id }}', function(listings) {
+
+            //var heatmapData = [];
+            var bounds = new google.maps.LatLngBounds();
+
+            bounds.extend(new google.maps.LatLng({{ place.ne_lat }}, {{ place.ne_lng }}))
+            bounds.extend(new google.maps.LatLng({{ place.sw_lat }}, {{ place.sw_lng }}))
+
+            for (i = 0; i < listings.length; i++) {
+
+                var latLng = new google.maps.LatLng(listings[i]['lat'], listings[i]['lng'])
+                bounds.extend(latLng)
+
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: latLng,
+                    clickable: true,
+                    icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'])
+                });
+                marker.note = '<div>' + 
+                                '<h3>' + listings[i]['name'] + '</h3>' +
+                                '<table width="100%"><tr><td>' +
+                                '<b>Nightly Rate:</b> ' + listings[i]['rate'] + '<br>' +
+                                '<b>Star rating:</b> ' + listings[i]['star_rating'] + '<br>' +
+                                '<b>Num reviews:</b> ' + listings[i]['count_reviews'] + '<br>' +
+                                '<b>Bedrooms:</b> ' + listings[i]['bedrooms'] + '<br>' +
+                                '<b>Baths:</b> ' + listings[i]['bathrooms'] + '<br>' +
+                                '<b>Beds:</b> ' + listings[i]['beds'] + '<br>' +
+                                '<b>Person capacity:</b> ' + listings[i]['person_capacity'] + '<br>' +
+                                '</td>' +
+                                '<td align="center"><img src="' + listings[i]['picture_url'] + '" height="140" style="margin-left: 15px;"></td>' +
+                                '</tr></table>'
+                                '</div>';
+
+                var infoWindow = new google.maps.InfoWindow();
+
+                marker.addListener('click', function() {
+                    infoWindow.setContent(this.note);
+                    infoWindow.open(this.getMap(), this);
+                });
+
+            };
+
+            map.fitBounds(bounds);
+
+        });
+    }
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBWzDcsD619anMi-44apAE1XAFRPj8LAo0&callback=initMap">
+    </script>
+
+    <script>
+    $(document).ready(function() {
+        getListings();
+    });
+    </script>
 
     <br />
     

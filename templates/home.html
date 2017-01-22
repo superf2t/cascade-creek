@@ -13,7 +13,7 @@
         </tr>
         {% for place in places %}
             <tr>
-                <td style="vertical-align: middle"><a href="/view_place/{{ place.place_id }}">{{ place.name }}</a></td>
+                <td style="vertical-align: middle"><a href="/place/view_place/{{ place.place_id }}">{{ place.name }}</a></td>
                 <td><img src='{{ place.img_url }}' width="200"></td>
             </tr>
         {% endfor %}
