@@ -1,9 +1,14 @@
+from flask import jsonify
 import vars
 import utils
 import utils_db
 from classes.place import Place
 import time
 import requests
+from decimal import Decimal
+import urllib
+
+import pdb
 
 #######################
 # 3rd PARTY API CALLS #
@@ -50,3 +55,87 @@ def get_place_search(session_id, place_search_url):
     utils.log(session_id, 'get_place_search', 'api call', place_search_url, elapsed_time)
 
     return result.json()
+
+# call trulia and get for sale listings
+def get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng):
+    time_start = time.time()
+
+    filters = build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng)
+    filters = filters.replace("'", '"')
+    
+    # call trulia and bring it on back
+    url = "https://www.trulia.com/json/search/filters/?filters=%s" % urllib.quote(filters)
+    print url
+    trulia_result = requests.get(url)
+
+    #log
+    elapsed_time = time.time() - time_start
+    utils.log(None, 'get_trulia_for_sale', 'Getting "for sale" listings from Trulia', url, elapsed_time)
+    
+    return trulia_result.content
+
+
+####################
+# HELPER FUNCTIONS #
+####################
+
+# build querystring param for Trulia search
+def build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng):
+    template = {
+        "searchType":"for_sale",
+        "location": {
+            "coordinates": {
+                "southWest": {
+                    "latitude":0,
+                    "longitude":0
+                },
+                "northEast": {
+                    "latitude":0,
+                    "longitude":0
+                },
+                "southEast": {
+                    "latitude":0,
+                    "longitude":0
+                },
+                "northWest": {
+                    "latitude":0,
+                    "longitude":0
+                },
+                "center": {
+                    "latitude":0,
+                    "longitude":0
+                }
+            }
+        },
+        "filters": {
+            "page":1,
+            "view":"map",
+            "limit":30,
+            "sort": {
+                "type":"best",
+                "ascending":True
+            },
+            "offset":0,
+            "zoom":13
+        }
+    }
+
+    #{"searchType":"for_sale","location":{"cities":null,"commute":null,"coordinates":{"southWest":{"latitude":40.52894919494794,"longitude":-105.1189418245508},"northEast":{"latitude":40.60015121542612,"longitude":-105.04444078695315},"southEast":{"latitude":40.60015121542612,"longitude":-105.1189418245508},"northWest":{"latitude":40.52894919494794,"longitude":-105.04444078695315},"center":{"latitude":40.56455020518703,"longitude":-105.08169130575197}},"customArea":null,"pointOfInterest":null,"radiusSize":null,"school":null,"university":null,"street":null,"counties":null,"neighborhoods":null,"zips":null,"schoolDistricts":null},"filters":{"page":1,"view":"map","limit":30,"sort":{"type":"best","ascending":true},"offset":0,"zoom":13}}
+    #"cities":null,"commute":null,"customArea":null,"pointOfInterest":null,"radiusSize":null,"school":null,"university":null,"street":null,"counties":null,"neighborhoods":null,"zips":null,"schoolDistricts":null
+
+    template['location']['coordinates']['southWest']['latitude'] = str(sw_lat)
+    template['location']['coordinates']['southWest']['longitude'] = str(sw_lng)
+
+    template['location']['coordinates']['northEast']['latitude'] = str(ne_lat)
+    template['location']['coordinates']['northEast']['longitude'] = str(ne_lng)
+
+    template['location']['coordinates']['southEast']['latitude'] = str(sw_lat)
+    template['location']['coordinates']['southEast']['longitude'] = str(ne_lng)
+
+    template['location']['coordinates']['northWest']['latitude'] = str(ne_lat)
+    template['location']['coordinates']['northWest']['longitude'] = str(sw_lng)
+
+    template['location']['coordinates']['center']['latitude'] = str((Decimal(ne_lat) + Decimal(sw_lat)) / 2)
+    template['location']['coordinates']['center']['longitude'] = str((Decimal(ne_lng) + Decimal(sw_lng)) / 2)
+
+    return str(template)

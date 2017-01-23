@@ -17,28 +17,21 @@
     <br />
 
     <div id="map"></div>
+
+    <br>
+    <br>
+
+    {{ trulia_json }}
+
+    <div id="trulia_results"></div>
         
     <script>
     var map;
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 3
-    });
+            zoom: 3
+        });
 
-    var rectangle = new google.maps.Rectangle({
-        strokeColor: '#FF0000',
-        strokeOpacity: 0.6,
-        strokeWeight: 2,
-        fillColor: '#FF0000',
-        fillOpacity: 0,
-        map: map,
-        bounds: {
-            north: {{ place.ne_lat }},
-            south: {{ place.sw_lat }},
-            east: {{ place.ne_lng }},
-            west: {{ place.sw_lng }}
-        }
-    });
 
     }
 
@@ -47,7 +40,7 @@
             path: google.maps.SymbolPath.CIRCLE,
             fillColor: 'green',
             fillOpacity: Number(total_bookings_rank) / 100, //.2,
-            scale: Math.log(count_nights_rank) * 3, //Math.pow(2, count_nights_rank) / 2,
+            scale: Math.sqrt(count_nights_rank), //Math.pow(2, count_nights_rank) / 2,
             strokeColor: 'white',
             strokeWeight: .5
         };
@@ -100,7 +93,53 @@
 
             map.fitBounds(bounds);
 
+            getForSale({{ place.ne_lat }}, {{ place.ne_lng }}, {{ place.sw_lat }}, {{ place.sw_lng}});
+
         });
+    }
+
+    function getForSale(ne_lat, ne_lng, sw_lat, sw_lng) {
+        $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(results) {
+
+            //loop and put markers on screen
+            for (i = 0; i < results.page.cards.length; i++) {
+                card = results.page.cards[i];
+
+                console.log(card);
+
+                var latLng = new google.maps.LatLng(card.latLng[0], card.latLng[1]);
+
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: latLng,
+                    icon: {
+                        path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                        scale: 2,
+                        labelOrigin: new google.maps.Point(0, 8),
+                        strokeColor: '#666666'
+                    },
+                    label: {
+                        text: card.shortPrice,
+                        color: '#666666',
+                        //fontWeight: 'bold',
+                        fontSize: '10px',
+
+                    }
+                    //'/static/images/map-marker-2.png', //getArrow(),
+                });
+
+            }
+            
+        });
+    }
+
+
+    function getArrow() {
+        return {
+            path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,
+            scale: 3,
+            
+        }
     }
 
     </script>

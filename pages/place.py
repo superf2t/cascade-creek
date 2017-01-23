@@ -8,7 +8,6 @@ import utils_sqs
 #sys.path.append("classes")
 from classes.place import Place
 import requests
-import json
 import datetime
 import time
 import math
@@ -31,7 +30,8 @@ def add_place_page():
 def view_place_page(place_id):
     utils.log(None, 'view_place_page(%s)' % place_id, None)
     place = utils_db.get_place(place_id)
-    return render_template("view_place.html", place=place)
+
+    return render_template("view_place.html", place=place) #, trulia_json=trulia_json)
 
 @place.route("/view_place/<place_id>/queue")
 def initiate_place_scrape_page(place_id):
@@ -84,8 +84,17 @@ def get_listings_geojson_api(place_id):
     listings = utils_db.get_listings(place_id)
     return jsonify(listings)
 
+@place.route("/_for_sale/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>")
+def get_for_sale_api(ne_lat, ne_lng, sw_lat, sw_lng):
+
+    # get trulia listings for the passed in geo
+    results = utils_api.get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng)
+
+    return results
 
 ####################
 # HELPER FUNCTIONS #
 ####################
+
+# none
 
