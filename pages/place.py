@@ -30,8 +30,8 @@ def add_place_page():
 def view_place_page(place_id):
     utils.log(None, 'view_place_page(%s)' % place_id, None)
     place = utils_db.get_place(place_id)
-
-    return render_template("view_place.html", place=place, google_api_key_js_map=vars.google_api_key_js_map) #, trulia_json=trulia_json)
+    avg_bookings_by_bedrooms = utils_db.get_avg_bookings_by_bedrooms(place_id)
+    return render_template("view_place.html", place=place, avg_bookings_by_bedrooms=avg_bookings_by_bedrooms, google_api_key_js_map=vars.google_api_key_js_map) #, trulia_json=trulia_json)
 
 @place.route("/view_place/<place_id>/queue")
 def initiate_place_scrape_page(place_id):

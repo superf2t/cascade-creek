@@ -18,13 +18,61 @@
 
     <div id="map"></div>
 
-    <br>
-    <br>
+    <div id="avg_by_num_bedrooms_div"></div>
 
-    {{ trulia_json }}
+    {% raw %}
+    <script type="text/x-tmpl" id="avg_by_num_bedrooms_tmpl">
+        <div class="row">
+            <h3>Average by Num Bedrooms</h3>
+            <table class="table table-striped">
+            <tr>
+                <th>Bedrooms</th>
+                <th>Rental Houses</th>
+                <th>Avg Monthly Bookings</th>
+                <th>For Sale Houses</th>
+                <th>Avg Mortgage</th>
+                <th>Diff</th>
+            </tr>
+            {% for (var i=0; i < o.length; i++) { %}
+                <tr id="bedrooms_{{ row.i_bedrooms }}">
+                    <td align="center">{%= o[i].i_bedrooms %}</td>
+                    <td align="center">{%= o[i].count_homes %}</td>
+                    <td align="center">${%= o[i].avg_bookings %}</td>
+                    <td align="center">
+                        {% if (o[i].count_for_sale) { %}
+                            {%= o[i].count_for_sale %}
+                        {% } %}
+                    </td>
+                    <td align="center">
+                        {% if (o[i].mortgage_cost) { %}
+                            ${%= o[i].mortgage_cost %}
+                        {% } %}
+                    </td>
+                    {% if (o[i].avg_bookings && o[i].mortgage_cost) { 
+                        var diff = o[i].avg_bookings - o[i].mortgage_cost;
+                        var td_class = "";
+                        if (diff > 0) {
+                            td_class = "success";
+                        }
+                        else if (diff < 0) {
+                            td_class = "danger"; 
+                        }  %}
+                        <td align="center" class="{%= td_class %}">${%= diff %}</td>
+                    {% }
+                       else { %}
+                        <td></td>
+                    {% } %}
 
-    <div id="trulia_results"></div>
-        
+                    
+                </tr>
+            {% } %}
+            </table>
+
+        </div>
+
+    </script>
+    {% endraw %}
+
     <script>
     var map;
     function initMap() {
@@ -136,7 +184,9 @@
                         //fontWeight: 'bold',
                         fontSize: '10px',
 
-                    }
+                    },
+                    bedrooms: card.beds,
+                    price: card.price
                 });
                 marker.note = '<div>' + 
                                 '<h3>' + card.streetAddress + '</h3>' +
@@ -146,13 +196,15 @@
                                 '<b>Sq/ft:</b> ' + card.sqft + '<br>' +
                                 '<b>Location:</b> ' + card.footer.location + '<br>' +
                                 '<b>Price:</b> ' + card.price + '<br>' +
+                                '<b>Mortgage @ 20%:</b> $' + monthlyPayment(cleanDollar(card.price)) + '<br>' +
+                                '<b>Mortgage @ 50%:</b> $' + monthlyPayment(cleanDollar(card.price), 50) + '<br>' +
                                 '</td>' +
                                 '<td align="center"><img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="140" style="margin-left: 15px;"></td>' +
                                 '</tr></table>'
                                 '</div>';
 
                 forSaleMarkers.push(marker);
-
+                
                 var infoWindow = new google.maps.InfoWindow();
 
                 marker.addListener('click', function() {
@@ -161,6 +213,8 @@
                 });
 
             }
+
+            update_avg_cost_analysis();
             
         });
     }
@@ -171,6 +225,101 @@
         }
         forSaleMarkers = [];
     }
+
+    //loop through the forSaleMarkers array and update the average monthly table
+    function update_avg_cost_analysis() {
+
+        var arr = [];
+
+        //loop through 1-5 bedroom houses and update total num houses and total cost
+        for (i = 0; i <= 5; i++) {
+            
+            var result = $.grep(forSaleMarkers, function(item){
+                return item.bedrooms == i + 'bd';
+            });
+
+            if (result.length > 0) {
+                var exists = arr[i];
+                if (!exists)
+                    arr[i] = {"count_for_sale": 0, "total_cost": 0, "avg_cost": 0, "mortgage_cost": 0};
+
+                thisListing = arr[i];
+
+                for (j = 0; j < result.length; j++) {
+
+                    if ($.isNumeric(result[j].price.replace(/[^0-9\.]+/g,""))) {
+                        thisListing.count_for_sale += 1;
+                        var price = cleanDollar(result[j].price);
+                        thisListing.total_cost += price;
+                    }
+                }
+
+                //get mortgage cost
+                if (thisListing.total_cost > 0) {
+                    thisListing.avg_cost = Math.round(thisListing.total_cost / thisListing.count_for_sale);
+                    thisListing.mortgage_cost = monthlyPayment(thisListing.avg_cost);
+                }
+
+                //merge into avg_bookings_by_bedrooms
+                var result = $.grep(avg_bookings_by_bedrooms, function(item) {
+                    return item.i_bedrooms == i;
+                });
+
+                var exists = avg_bookings_by_bedrooms[i];
+                if (!exists)
+                    avg_bookings_by_bedrooms[i] = {"avg_bookings": 0, 
+                                                    "count_homes": 0, 
+                                                    "i_bedrooms": i, 
+                                                    "count_for_sale": 0,
+                                                    "avg_cost": 0,
+                                                    "mortgage_cost": 0
+                                                }
+
+                avg_bookings_by_bedrooms[i].count_for_sale = thisListing.count_for_sale;
+                avg_bookings_by_bedrooms[i].avg_cost = thisListing.avg_cost;
+                avg_bookings_by_bedrooms[i].mortgage_cost = thisListing.mortgage_cost;
+                    
+            }
+            
+        }
+
+        displayAvgBookingsTable(avg_bookings_by_bedrooms);
+    }
+
+
+    // house_cost = cost of house
+    // down_payment_pct = down payment percent
+    // loan_years = years of loan
+    // interest_rate = yearly interest rate
+    function monthlyPayment(house_cost, down_payment_percent, loan_years, interest_rate) {
+        //default values
+        if (down_payment_percent === undefined)
+            down_payment_percent = 20;
+
+        if (loan_years === undefined)
+            loan_years = 30;
+
+        if (interest_rate === undefined)
+            interest_rate = 5;
+
+        //get principle, amount of loan
+        var principle = house_cost * (1 - (down_payment_percent / 100));
+        //turn years into months
+        var num_months = loan_years * 12;
+        //turn i into a monthly interest rate
+        interest_rate = interest_rate / 100 / 12;
+        return Math.round(principle * interest_rate * (Math.pow(1 + interest_rate, num_months)) / (Math.pow(1 + interest_rate, num_months) - 1));
+    }
+
+    function cleanDollar(num) {
+        return Number(num.replace(/[^0-9\.]+/g,""));
+    }
+
+    function displayAvgBookingsTable(data) {
+        $('#avg_by_num_bedrooms_div').html(tmpl("avg_by_num_bedrooms_tmpl", data));
+    }
+
+    var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};
 
     </script>
     <script async defer
