@@ -31,7 +31,7 @@ def view_place_page(place_id):
     utils.log(None, 'view_place_page(%s)' % place_id, None)
     place = utils_db.get_place(place_id)
 
-    return render_template("view_place.html", place=place) #, trulia_json=trulia_json)
+    return render_template("view_place.html", place=place, google_api_key_js_map=vars.google_api_key_js_map) #, trulia_json=trulia_json)
 
 @place.route("/view_place/<place_id>/queue")
 def initiate_place_scrape_page(place_id):

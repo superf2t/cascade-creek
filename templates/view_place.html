@@ -32,7 +32,6 @@
             zoom: 3
         });
 
-
     }
 
     function getCircle(count_nights_rank, total_bookings_rank) {
@@ -95,17 +94,30 @@
 
             getForSale({{ place.ne_lat }}, {{ place.ne_lng }}, {{ place.sw_lat }}, {{ place.sw_lng}});
 
+            map.addListener('dragend', function() {
+                ne = map.getBounds().getNorthEast();
+                sw = map.getBounds().getSouthWest();
+                getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng());
+            });
+            map.addListener('zoom_changed', function() {
+                ne = map.getBounds().getNorthEast();
+                sw = map.getBounds().getSouthWest();
+                getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng());
+            });
+
         });
     }
+
+    forSaleMarkers = [];
 
     function getForSale(ne_lat, ne_lng, sw_lat, sw_lng) {
         $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(results) {
 
+            clearForSale();
+
             //loop and put markers on screen
             for (i = 0; i < results.page.cards.length; i++) {
                 card = results.page.cards[i];
-
-                console.log(card);
 
                 var latLng = new google.maps.LatLng(card.latLng[0], card.latLng[1]);
 
@@ -125,7 +137,27 @@
                         fontSize: '10px',
 
                     }
-                    //'/static/images/map-marker-2.png', //getArrow(),
+                });
+                marker.note = '<div>' + 
+                                '<h3>' + card.streetAddress + '</h3>' +
+                                '<table width="100%"><tr><td>' +
+                                '<b>Bedrooms:</b> ' + card.beds + '<br>' +
+                                '<b>Bathrooms:</b> ' + card.baths + '<br>' +
+                                '<b>Sq/ft:</b> ' + card.sqft + '<br>' +
+                                '<b>Location:</b> ' + card.footer.location + '<br>' +
+                                '<b>Price:</b> ' + card.price + '<br>' +
+                                '</td>' +
+                                '<td align="center"><img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="140" style="margin-left: 15px;"></td>' +
+                                '</tr></table>'
+                                '</div>';
+
+                forSaleMarkers.push(marker);
+
+                var infoWindow = new google.maps.InfoWindow();
+
+                marker.addListener('click', function() {
+                    infoWindow.setContent(this.note);
+                    infoWindow.open(this.getMap(), this);
                 });
 
             }
@@ -133,18 +165,16 @@
         });
     }
 
-
-    function getArrow() {
-        return {
-            path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,
-            scale: 3,
-            
+    function clearForSale() {
+        for (var i = 0; i < forSaleMarkers.length; i++) {
+            forSaleMarkers[i].setMap(null);
         }
+        forSaleMarkers = [];
     }
 
     </script>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBWzDcsD619anMi-44apAE1XAFRPj8LAo0&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key_js_map }}&callback=initMap">
     </script>
 
     <script>
