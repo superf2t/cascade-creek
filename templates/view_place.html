@@ -26,12 +26,13 @@
             <h3>Average by Num Bedrooms</h3>
             <table class="table table-striped">
             <tr>
-                <th>Bedrooms</th>
-                <th>Rental Houses</th>
-                <th>Avg Monthly Bookings</th>
-                <th>For Sale Houses</th>
-                <th>Avg Mortgage</th>
-                <th>Diff</th>
+                <th align="center">Bedrooms</th>
+                <th align="center">Rental Houses</th>
+                <th align="center">Avg Monthly Bookings</th>
+                <th align="center">For Sale Houses</th>
+                <th align="center">Avg Mortgage</th>
+                <th align="center">Diff</th>
+                <th align="center">Diff %</th>
             </tr>
             {% for (var i=0; i < o.length; i++) { %}
                 <tr id="bedrooms_{{ row.i_bedrooms }}">
@@ -50,6 +51,7 @@
                     </td>
                     {% if (o[i].avg_bookings && o[i].mortgage_cost) { 
                         var diff = o[i].avg_bookings - o[i].mortgage_cost;
+                        var diff_pct = Math.round(((o[i].avg_bookings / o[i].mortgage_cost) - 1) * 100);
                         var td_class = "";
                         if (diff > 0) {
                             td_class = "success";
@@ -58,6 +60,7 @@
                             td_class = "danger"; 
                         }  %}
                         <td align="center" class="{%= td_class %}">${%= diff %}</td>
+                        <td align="center" class="{%= td_class %}"><small>{%= diff_pct %}%</small></td>
                     {% }
                        else { %}
                         <td></td>
@@ -80,6 +83,21 @@
             zoom: 3
         });
 
+
+        var rectangle = new google.maps.Rectangle({
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: '#000000',
+            fillOpacity: 0,
+            map: map,
+            bounds: {
+                north: {{ place.ne_lat }},
+                south: {{ place.sw_lat }},
+                east: {{ place.ne_lng }},
+                west: {{ place.sw_lng }}
+            }
+        });
     }
 
     function getCircle(count_nights_rank, total_bookings_rank) {
@@ -124,6 +142,7 @@
                                 '<b>Baths:</b> ' + listings[i]['bathrooms'] + '<br>' +
                                 '<b>Beds:</b> ' + listings[i]['beds'] + '<br>' +
                                 '<b>Person capacity:</b> ' + listings[i]['person_capacity'] + '<br>' +
+                                '<b>Airbnb:</b> <a href="https://www.airbnb.com/rooms/' + listings[i]['listing_id'] + '" target="_new">Go to Airbnb</a><br>' +
                                 '</td>' +
                                 '<td align="center"><img src="' + listings[i]['picture_url'] + '" height="140" style="margin-left: 15px;"></td>' +
                                 '</tr></table>'
@@ -165,52 +184,57 @@
 
             //loop and put markers on screen
             for (i = 0; i < results.page.cards.length; i++) {
+                
                 card = results.page.cards[i];
 
-                var latLng = new google.maps.LatLng(card.latLng[0], card.latLng[1]);
+                if (card.beds !== undefined) {
 
-                var marker = new google.maps.Marker({
-                    map: map,
-                    position: latLng,
-                    icon: {
-                        path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
-                        scale: 2,
-                        labelOrigin: new google.maps.Point(0, 8),
-                        strokeColor: '#666666'
-                    },
-                    label: {
-                        text: card.shortPrice,
-                        color: '#666666',
-                        //fontWeight: 'bold',
-                        fontSize: '10px',
+                    var latLng = new google.maps.LatLng(card.latLng[0], card.latLng[1]);
 
-                    },
-                    bedrooms: card.beds,
-                    price: card.price
-                });
-                marker.note = '<div>' + 
-                                '<h3>' + card.streetAddress + '</h3>' +
-                                '<table width="100%"><tr><td>' +
-                                '<b>Bedrooms:</b> ' + card.beds + '<br>' +
-                                '<b>Bathrooms:</b> ' + card.baths + '<br>' +
-                                '<b>Sq/ft:</b> ' + card.sqft + '<br>' +
-                                '<b>Location:</b> ' + card.footer.location + '<br>' +
-                                '<b>Price:</b> ' + card.price + '<br>' +
-                                '<b>Mortgage @ 20%:</b> $' + monthlyPayment(cleanDollar(card.price)) + '<br>' +
-                                '<b>Mortgage @ 50%:</b> $' + monthlyPayment(cleanDollar(card.price), 50) + '<br>' +
-                                '</td>' +
-                                '<td align="center"><img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="140" style="margin-left: 15px;"></td>' +
-                                '</tr></table>'
-                                '</div>';
+                    var marker = new google.maps.Marker({
+                        map: map,
+                        position: latLng,
+                        icon: {
+                            path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                            scale: 2,
+                            labelOrigin: new google.maps.Point(0, 8),
+                            strokeColor: '#666666'
+                        },
+                        label: {
+                            text: card.shortPrice + ' (' + card.beds + ')',
+                            color: '#666666',
+                            fontSize: '10px',
 
-                forSaleMarkers.push(marker);
-                
-                var infoWindow = new google.maps.InfoWindow();
+                        },
+                        bedrooms: card.beds,
+                        price: card.price
+                    });
+                    marker.note = '<div>' + 
+                                    '<h3>' + card.streetAddress + '</h3>' +
+                                    '<table width="100%"><tr><td>' +
+                                    '<b>Bedrooms:</b> ' + card.beds + '<br>' +
+                                    '<b>Bathrooms:</b> ' + card.baths + '<br>' +
+                                    '<b>Sq/ft:</b> ' + card.sqft + '<br>' +
+                                    '<b>Location:</b> ' + card.footer.location + '<br>' +
+                                    '<b>Price:</b> ' + card.price + '<br>' +
+                                    '<b>Mortgage @ 20%:</b> $' + monthlyPayment(cleanDollar(card.price)) + '<br>' +
+                                    '<b>Mortgage @ 50%:</b> $' + monthlyPayment(cleanDollar(card.price), 50) + '<br>' +
+                                    '<b>Trulia:</b> <a href="https://www.trulia.com' + card.cardUrl + '" target="_new">Trulia site</a><br>' +
+                                    '</td>' +
+                                    '<td align="center"><img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="140" style="margin-left: 15px;"></td>' +
+                                    '</tr></table>'
+                                    '</div>';
 
-                marker.addListener('click', function() {
-                    infoWindow.setContent(this.note);
-                    infoWindow.open(this.getMap(), this);
-                });
+                    forSaleMarkers.push(marker);
+                    
+                    var infoWindow = new google.maps.InfoWindow();
+
+                    marker.addListener('click', function() {
+                        infoWindow.setContent(this.note);
+                        infoWindow.open(this.getMap(), this);
+                    });
+
+                }
 
             }
 
@@ -317,6 +341,10 @@
 
     function displayAvgBookingsTable(data) {
         $('#avg_by_num_bedrooms_div').html(tmpl("avg_by_num_bedrooms_tmpl", data));
+
+        //if a particular home listing get >200% returns, make it stand out
+        //do it here
+        //forSaleMarkers[0].setLabel({"color":"Red", "text":"yo yo"});
     }
 
     var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};

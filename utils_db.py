@@ -77,6 +77,7 @@ def get_listings(place_id):
 
     for listing in results:
         listings.append({
+                "listing_id": listing['i_listing_id'],
                 "lat": listing['s_lat'],
                 "lng": listing['s_lng'],
                 "name": listing['s_listing_name'],
