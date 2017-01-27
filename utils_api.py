@@ -47,7 +47,6 @@ def get_google_place(place):
 def get_place_search(session_id, place_search_url):    
     time_start = time.time()
 
-    print '\nplace_search_url:\n%s\n' % place_search_url
     result = requests.get(place_search_url)
 
     #log

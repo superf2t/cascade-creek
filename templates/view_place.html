@@ -77,7 +77,8 @@
     {% endraw %}
 
     <script>
-    var map;
+    var map = null;
+    
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
             zoom: 3
@@ -142,6 +143,7 @@
                                 '<b>Baths:</b> ' + listings[i]['bathrooms'] + '<br>' +
                                 '<b>Beds:</b> ' + listings[i]['beds'] + '<br>' +
                                 '<b>Person capacity:</b> ' + listings[i]['person_capacity'] + '<br>' +
+                                '<b>Avg Monthly Bookings:</b> $' + listings[i]['avg_monthly_bookings'] + '<br>' + 
                                 '<b>Airbnb:</b> <a href="https://www.airbnb.com/rooms/' + listings[i]['listing_id'] + '" target="_new">Go to Airbnb</a><br>' +
                                 '</td>' +
                                 '<td align="center"><img src="' + listings[i]['picture_url'] + '" height="140" style="margin-left: 15px;"></td>' +
@@ -162,26 +164,29 @@
             getForSale({{ place.ne_lat }}, {{ place.ne_lng }}, {{ place.sw_lat }}, {{ place.sw_lng}});
 
             map.addListener('dragend', function() {
+                clearForSale();
                 ne = map.getBounds().getNorthEast();
                 sw = map.getBounds().getSouthWest();
                 getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng());
             });
+            
             map.addListener('zoom_changed', function() {
+                clearForSale();
                 ne = map.getBounds().getNorthEast();
                 sw = map.getBounds().getSouthWest();
                 getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng());
             });
+            
 
         });
     }
 
-    forSaleMarkers = [];
+    var forSaleMarkers = [];
 
     function getForSale(ne_lat, ne_lng, sw_lat, sw_lng) {
+
         $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(results) {
-
-            clearForSale();
-
+    
             //loop and put markers on screen
             for (i = 0; i < results.page.cards.length; i++) {
                 
@@ -189,7 +194,10 @@
 
                 if (card.beds !== undefined) {
 
-                    var latLng = new google.maps.LatLng(card.latLng[0], card.latLng[1]);
+                    offset = Math.random() / 5000;
+                    offset2 = Math.random() / 5000;
+
+                    var latLng = new google.maps.LatLng(card.latLng[0] + offset, card.latLng[1] + offset2);
 
                     var marker = new google.maps.Marker({
                         map: map,
@@ -238,16 +246,28 @@
 
             }
 
+            //markerCluster = new MarkerClusterer(map, forSaleMarkers, {imagePath: '/static/images/m'});
+
             update_avg_cost_analysis();
             
         });
     }
 
     function clearForSale() {
+
         for (var i = 0; i < forSaleMarkers.length; i++) {
+            //console.log(forSaleMarkers[i]);
             forSaleMarkers[i].setMap(null);
         }
+        
         forSaleMarkers = [];
+
+        for (var i = 0; i < avg_bookings_by_bedrooms.length; i++) {
+            avg_bookings_by_bedrooms[i].count_for_sale = 0;
+            avg_bookings_by_bedrooms[i].avg_cost = 0;
+            avg_bookings_by_bedrooms[i].mortgage_cost = 0;    
+        }
+        
     }
 
     //loop through the forSaleMarkers array and update the average monthly table
@@ -350,6 +370,7 @@
     var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};
 
     </script>
+    
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key_js_map }}&callback=initMap">
     </script>

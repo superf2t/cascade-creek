@@ -10,7 +10,8 @@ import pdb
 
 class Place:
     def __init__(self, place_id = '', name = '', lat = '', lng = '', 
-                ne_lat = '', ne_lng = '', sw_lat = '', sw_lng = ''):
+                ne_lat = '', ne_lng = '', sw_lat = '', sw_lng = '',
+                count_listings = 0):
         self.place_id = place_id
         self.name = name
         self.lat = lat
@@ -19,6 +20,7 @@ class Place:
         self.ne_lng = ne_lng
         self.sw_lat = sw_lat
         self.sw_lng = sw_lng
+        self.count_listings = count_listings
 
         if ne_lat and ne_lng and sw_lat and sw_lng:
             self.set_img_url()

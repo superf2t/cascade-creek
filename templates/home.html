@@ -1,24 +1,68 @@
 {% extends "layout.html" %}
+{% block css %}
+    <style>
+    #map {
+        height: 600px;
+        width: 100%;
+    }
+    </style>
+{% endblock %}
 {% block body %}
 
     
-        <h1>There are {{ count }} places in database</h1>
-        <br />
+    <h1>There are {{ count }} places in database</h1>
+    <br />
 
-        <div>
-        <table class="table">
-        <tr>
-            <th>Name</th>
-            <th>Map</th>
-        </tr>
-        {% for place in places %}
-            <tr>
-                <td style="vertical-align: middle"><a href="/place/view_place/{{ place.place_id }}">{{ place.name }}</a></td>
-                <td><img src='{{ place.img_url }}' width="200"></td>
-            </tr>
-        {% endfor %}
-        </table>
-        </div>
+    <div id="map"></div>
+
+    <script>
+
+        var map = null;
+        
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 39.011902, lng: -98.484246},
+                zoom: 4
+            });
+
+            var rectangle = null;
+            {% for place in places %}
+
+                var latLng = new google.maps.LatLng({{ place.lat }}, {{ place.lng }})
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: latLng,
+                    clickable: true
+                });
+                marker.addListener('click', function() {
+                    location.href = '/place/view_place/{{ place.place_id }}'
+                });
+
+                rectangle = new google.maps.Rectangle({
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#000000',
+                    fillOpacity: 0,
+                    map: map,
+                    bounds: {
+                        north: {{ place.ne_lat }},
+                        south: {{ place.sw_lat }},
+                        east: {{ place.ne_lng }},
+                        west: {{ place.sw_lng }}
+                    }
+                });
+            {% endfor %}
+            
+        }
+
+        function showPlaces() {
+
+        }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key_js_map }}&callback=initMap">
+    </script>
 
     
 

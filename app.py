@@ -22,7 +22,7 @@ app.register_blueprint(queue, url_prefix='/queue')
 def hello_world_page():
     utils.log(None, 'hello_world_page', 'page load')
     places = utils_db.get_places()
-    return render_template("home.html", places=places, count=len(places))
+    return render_template("home.html", places=places, count=len(places), google_api_key_js_map=vars.google_api_key_js_map)
 
 
 @app.route('/log')

@@ -19,10 +19,12 @@ def get_places():
 
     places = []
 
-    results = utils.pg_sql("select * from place")
+    results = utils.pg_sql("select *, " \
+                        "(select count(*) from listing where listing.s_google_place_id = place.s_google_place_id) as count_listings " \
+                        "from place")
 
     for place in results:
-        p = Place(place["s_google_place_id"], place["s_name"], place["s_lat"], place["s_lng"], place["s_ne_lat"], place["s_ne_lng"], place["s_sw_lat"], place["s_sw_lng"])
+        p = Place(place["s_google_place_id"], place["s_name"], place["s_lat"], place["s_lng"], place["s_ne_lat"], place["s_ne_lng"], place["s_sw_lat"], place["s_sw_lng"], place["count_listings"])
         places.append(p)
     
     return places
@@ -48,31 +50,47 @@ def get_listings(place_id):
     listings = []
     place_id
     sql = "WITH t1 as ( " \
-            "select l.i_listing_id, l.s_listing_name, l.s_lat, l.s_lng, l.d_star_rating, l.d_rate, l.i_reviews_count, l.i_person_capacity, " \
-                "l.i_beds, l.i_bedrooms, l.d_bathrooms, l.s_picture_url, " \
-                "count(c.*) as count_nights, sum(c.i_price) as total_bookings,  " \
-                "CAST(avg(c.i_price) as DECIMAL(6, 2)) as avg_nightly_price " \
-            "from listing l " \
-                "join calendar c on l.i_listing_id = c.i_listing_id " \
-            "where l.s_google_place_id = %s " \
-                "and s_room_type = 'Entire home/apt' " \
-                "and c.b_available = FALSE " \
-                "and d_star_rating >= 4.0 " \
-            "group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 " \
-            "order by 1 " \
-        "), t2 as ( " \
-            "select i_listing_id, RANK() OVER (ORDER BY count_nights) as count_nights_rank, " \
-                "RANK() OVER (ORDER BY total_bookings) as total_bookings_rank " \
-            "from t1 " \
+        "    select l.s_google_place_id, l.i_listing_id, l.s_listing_name, l.s_lat, l.s_lng, l.d_star_rating, l.d_rate, l.i_reviews_count, l.i_person_capacity, " \
+        "        l.i_beds, l.i_bedrooms, l.d_bathrooms, l.s_picture_url, " \
+        "        count(*) as count_nights_total " \
+        "    from calendar c " \
+        "        join listing l on c.i_listing_id = l.i_listing_id " \
+        "    where l.s_google_place_id = %s " \
+        "        and l.s_room_type = 'Entire home/apt' " \
+        "        and l.s_room_type = 'Entire home/apt' " \
+        "        and l.d_star_rating >= 4.0 " \
+        "        and l.d_rate < 1000 " \
+        "    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 " \
+        "    order by i_listing_id " \
+        "), t2 as (  " \
+        "    select t1.i_listing_id, count(c.*) as count_nights_booked, sum(c.i_price) as total_bookings,  " \
+        "        CAST(avg(c.i_price) as DECIMAL(6, 2)) as avg_nightly_price " \
+        "    from t1 " \
+        "        join calendar c on t1.i_listing_id = c.i_listing_id " \
+        "    where t1.s_google_place_id = %s " \
+        "        and c.b_available = FALSE " \
+        "    group by 1 " \
+        "    order by 1 " \
+        "), t3 as ( " \
+        "    select t2.i_listing_id, RANK() OVER (ORDER BY t2.count_nights_booked) as count_nights_rank, " \
+        "        RANK() OVER (ORDER BY t2.total_bookings) as total_bookings_rank " \
+        "    from t2 " \
         ") " \
-        "select t1.i_listing_id, t1.s_listing_name, t1.s_lat, s_lng, d_star_rating, i_reviews_count, d_rate, i_person_capacity, " \
-            "i_beds, i_bedrooms, d_bathrooms, s_picture_url, " \
-            "t1.count_nights, CAST(t2.count_nights_rank / (select MAX(count_nights_rank) * 1.0 from t2) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  " \
-            "t1.total_bookings, CAST(t2.total_bookings_rank / (select MAX(total_bookings_rank) * 1.0 from t2) * 100 AS DECIMAL(9, 0)) as total_bookings_rank " \
+        "select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, " \
+        "    t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, " \
+        "    t1.i_beds, t1.i_bedrooms, t1.d_bathrooms, t1.s_picture_url, " \
+        "    t1.count_nights_total, t2.count_nights_booked, t2.total_bookings,  " \
+        "    CAST(t3.count_nights_rank / (select MAX(t3.count_nights_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  " \
+        "    CAST(t3.total_bookings_rank / (select MAX(t3.total_bookings_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as total_bookings_rank, " \
+        "    CAST((t2.total_bookings / t1.count_nights_total) * 30 AS INT) as avg_monthly_bookings " \
         "from t1 " \
-            "join t2 on t1.i_listing_id = t2.i_listing_id " \
-        "order by t1.total_bookings desc"
-    params = (place_id,)
+        "    join t2 on t1.i_listing_id = t2.i_listing_id " \
+        "    join t3 on t2.i_listing_id = t3.i_listing_id " \
+        "order by t2.total_bookings desc"
+    params = (place_id, place_id)
+
+    print sql % params
+
     results = utils.pg_sql(sql, params)
 
     for listing in results:
@@ -89,11 +107,13 @@ def get_listings(place_id):
                 "bedrooms": str(listing['i_bedrooms']),
                 "bathrooms": str(listing['d_bathrooms']),
                 "picture_url": listing['s_picture_url'],
-                "count_nights": str(listing['count_nights']),
-                "count_nights_rank": str(listing['count_nights_rank']),
+                "count_nights_total": str(listing['count_nights_total']),
+                "count_nights_booked": str(listing['count_nights_booked']),
                 "total_bookings": str(listing['total_bookings']),
-                "total_bookings_rank": str(listing['total_bookings_rank'])
-            })
+                "count_nights_rank": str(listing['count_nights_rank']),
+                "total_bookings_rank": str(listing['total_bookings_rank']),
+                "avg_monthly_bookings": str(listing['avg_monthly_bookings'])
+            });
     
     return listings
 
@@ -310,7 +330,6 @@ def get_avg_bookings_by_bedrooms(place_id):
         "from t1 " \
             "join t2 on t1.i_bedrooms = t2.i_bedrooms " \
         "where t1.count_homes > 5"
-    print sql
     params = (place_id, place_id)
     results = utils.pg_sql(sql, params)
     return results
