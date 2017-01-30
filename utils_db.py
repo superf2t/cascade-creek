@@ -89,8 +89,6 @@ def get_listings(place_id):
         "order by t2.total_bookings desc"
     params = (place_id, place_id)
 
-    print sql % params
-
     results = utils.pg_sql(sql, params)
 
     for listing in results:
@@ -112,9 +110,10 @@ def get_listings(place_id):
                 "total_bookings": str(listing['total_bookings']),
                 "count_nights_rank": str(listing['count_nights_rank']),
                 "total_bookings_rank": str(listing['total_bookings_rank']),
-                "avg_monthly_bookings": str(listing['avg_monthly_bookings'])
+                "avg_monthly_bookings": str(listing['avg_monthly_bookings']),
+                "color": utils.get_color(listing['i_beds'])
             });
-    
+
     return listings
 
 
@@ -308,29 +307,31 @@ def get_avg_bookings_by_bedrooms(place_id):
     utils.log(None, 'get_avg_bookings_by_bedrooms', 'Getting average bookings by bedroom for place_id %s' % place_id)
 
     sql = "WITH t1 as ( " \
-            "select i_bedrooms, count(distinct l.i_listing_id) as count_homes, count(*) as count_nights_total, sum(i_price) as price_total " \
-            "from calendar c " \
-                "join listing l on c.i_listing_id = l.i_listing_id " \
-            "where l.s_google_place_id = %s " \
-                "and l.s_room_type = 'Entire home/apt' " \
-                "and l.d_star_rating > 3 " \
-            "group by i_bedrooms " \
+        "    select i_bedrooms, l.i_listing_id, count(*) as count_nights_total, sum(i_price) as price_total " \
+        "    from calendar c " \
+        "        join listing l on c.i_listing_id = l.i_listing_id " \
+        "    where l.s_google_place_id = %s " \
+        "        and l.s_room_type = 'Entire home/apt' " \
+        "        and l.d_star_rating > 3 " \
+        "    group by 1, 2 " \
         "), t2 as ( " \
-            "select i_bedrooms, count(distinct l.i_listing_id) as count_homes, count(*) as count_nights_total, sum(i_price) as price_total " \
-            "from calendar c " \
-               "join listing l on c.i_listing_id = l.i_listing_id " \
-            "where l.s_google_place_id = %s " \
-                "and c.b_available = False " \
-                "and l.s_room_type = 'Entire home/apt' " \
-                "and l.d_star_rating > 3 " \
-            "group by i_bedrooms " \
-            "order by i_bedrooms " \
+        "    select t1.i_bedrooms, t1.i_listing_id, t1.count_nights_total, t1.price_total,  " \
+        "        count(*) as count_nights_booked, " \
+        "        sum(c.i_price) as price_nights_booked, " \
+        "        (sum(c.i_price) / t1.count_nights_total) * 30 as avg_monthly_bookings " \
+        "    from t1  " \
+        "        join calendar c on t1.i_listing_id = c.i_listing_id " \
+        "    where c.b_available = False " \
+        "    group by 1, 2, 3, 4 " \
         ") " \
-        "select t1.i_bedrooms, t1.count_homes, (t2.price_total / t1.count_nights_total) * 30 as avg_bookings " \
-        "from t1 " \
-            "join t2 on t1.i_bedrooms = t2.i_bedrooms " \
-        "where t1.count_homes > 5"
-    params = (place_id, place_id)
+        "select i_bedrooms, count(*) as count_homes,  " \
+        "    CAST(sum(avg_monthly_bookings) / count(*) AS INT) as avg_bookings, " \
+        "    percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct " \
+        "from t2 " \
+        "group by 1 " \
+        "order by 1"
+    params = (place_id, )
     results = utils.pg_sql(sql, params)
+
     return results
 

@@ -64,7 +64,6 @@ def get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng):
     
     # call trulia and bring it on back
     url = "https://www.trulia.com/json/search/filters/?filters=%s" % urllib.quote(filters)
-    print url
     trulia_result = requests.get(url)
 
     #log

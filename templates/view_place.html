@@ -28,17 +28,19 @@
             <tr>
                 <th align="center">Bedrooms</th>
                 <th align="center">Rental Houses</th>
-                <th align="center">Avg Monthly Bookings</th>
-                <th align="center">For Sale Houses</th>
+                <th align="center">Avg/Month</th>
+                <th align="center">80th%/Month</th>
+                <th align="center"># For Sale</th>
                 <th align="center">Avg Mortgage</th>
                 <th align="center">Diff</th>
                 <th align="center">Diff %</th>
             </tr>
             {% for (var i=0; i < o.length; i++) { %}
-                <tr id="bedrooms_{{ row.i_bedrooms }}">
-                    <td align="center">{%= o[i].i_bedrooms %}</td>
+                <tr id="bedroms_{{ row.i_bedrooms }}">
+                    <td align="center" style="background-color: {%= get_color(o[i].i_bedrooms) %}">{%= o[i].i_bedrooms %}</td>
                     <td align="center">{%= o[i].count_homes %}</td>
                     <td align="center">${%= o[i].avg_bookings %}</td>
+                    <td align="center">${%= o[i].eighty_pct %}</td>
                     <td align="center">
                         {% if (o[i].count_for_sale) { %}
                             {%= o[i].count_for_sale %}
@@ -50,8 +52,8 @@
                         {% } %}
                     </td>
                     {% if (o[i].avg_bookings && o[i].mortgage_cost) { 
-                        var diff = o[i].avg_bookings - o[i].mortgage_cost;
-                        var diff_pct = Math.round(((o[i].avg_bookings / o[i].mortgage_cost) - 1) * 100);
+                        var diff = o[i].eighty_pct - o[i].mortgage_cost;
+                        var diff_pct = Math.round(((o[i].eighty_pct / o[i].mortgage_cost) - 1) * 100);
                         var td_class = "";
                         if (diff > 0) {
                             td_class = "success";
@@ -101,17 +103,16 @@
         });
     }
 
-    function getCircle(count_nights_rank, total_bookings_rank) {
+    function getCircle(count_nights_rank, total_bookings_rank, color) {
         return {
             path: google.maps.SymbolPath.CIRCLE,
-            fillColor: 'green',
+            fillColor: color,
             fillOpacity: Number(total_bookings_rank) / 100, //.2,
             scale: Math.sqrt(count_nights_rank), //Math.pow(2, count_nights_rank) / 2,
             strokeColor: 'white',
             strokeWeight: .5
         };
     }
-
 
     function getListings() {
         $.getJSON('/place/_listings_geojson/{{ place.place_id }}', function(listings) {
@@ -131,7 +132,7 @@
                     map: map,
                     position: latLng,
                     clickable: true,
-                    icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'])
+                    icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'], listings[i]['color'])
                 });
                 marker.note = '<div>' + 
                                 '<h3>' + listings[i]['name'] + '</h3>' +
@@ -206,11 +207,11 @@
                             path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
                             scale: 2,
                             labelOrigin: new google.maps.Point(0, 8),
-                            strokeColor: '#666666'
+                            strokeColor: get_color(card.beds)
                         },
                         label: {
                             text: card.shortPrice + ' (' + card.beds + ')',
-                            color: '#666666',
+                            color: get_color(card.beds),
                             fontSize: '10px',
 
                         },
@@ -256,7 +257,6 @@
     function clearForSale() {
 
         for (var i = 0; i < forSaleMarkers.length; i++) {
-            //console.log(forSaleMarkers[i]);
             forSaleMarkers[i].setMap(null);
         }
         
@@ -367,7 +367,17 @@
         //forSaleMarkers[0].setLabel({"color":"Red", "text":"yo yo"});
     }
 
+    function get_color(bedrooms) {
+        if (colors[bedrooms] !== undefined)
+            return colors[bedrooms]
+        else if (colors[bedrooms.substring(0,1)] !== undefined)
+            return colors[bedrooms.substring(0,1)];
+        else
+            return colors[0];
+    }
+
     var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};
+    var colors = {{ colors|tojson }};
 
     </script>
     
