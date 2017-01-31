@@ -7,18 +7,6 @@ import datetime
 import psycopg2
 import psycopg2.extras
 
-colors = [
-    "#677889",
-    "#994db6",
-    "#2f8bc1",
-    "#2cb76b",
-    "#17aa90",
-    "#e98a26",
-    "#ea5744",
-    "#f4a610",
-    "#c74231"
-]
-
 def pg_sql(sql, params = ()):
     conn = psycopg2.connect(vars.pg_conn_string)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -52,10 +40,3 @@ def log(session_id, function, action, url = None, elapsed_time = 0):
     params = (session_id, elapsed_time, function, action, url, str(datetime.datetime.now()))
 
     pg_sql(sql, params)
-
-def get_color(bedrooms):
-    try:
-        return colors[bedrooms]
-    except:
-        return colors[0]
-

@@ -110,8 +110,7 @@ def get_listings(place_id):
                 "total_bookings": str(listing['total_bookings']),
                 "count_nights_rank": str(listing['count_nights_rank']),
                 "total_bookings_rank": str(listing['total_bookings_rank']),
-                "avg_monthly_bookings": str(listing['avg_monthly_bookings']),
-                "color": utils.get_color(listing['i_beds'])
+                "avg_monthly_bookings": str(listing['avg_monthly_bookings'])
             });
 
     return listings

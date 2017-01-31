@@ -28,8 +28,8 @@
             <tr>
                 <th align="center">Bedrooms</th>
                 <th align="center">Rental Houses</th>
-                <th align="center">Avg/Month</th>
-                <th align="center">80th%/Month</th>
+                <th align="center">Avg Monthly</th>
+                <th align="center">80th%</th>
                 <th align="center"># For Sale</th>
                 <th align="center">Avg Mortgage</th>
                 <th align="center">Diff</th>
@@ -132,7 +132,7 @@
                     map: map,
                     position: latLng,
                     clickable: true,
-                    icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'], listings[i]['color'])
+                    icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'], get_color(listings[i]['bedrooms']))
                 });
                 marker.note = '<div>' + 
                                 '<h3>' + listings[i]['name'] + '</h3>' +
@@ -368,12 +368,15 @@
     }
 
     function get_color(bedrooms) {
-        if (colors[bedrooms] !== undefined)
+        if (colors[bedrooms] !== undefined) {
             return colors[bedrooms]
-        else if (colors[bedrooms.substring(0,1)] !== undefined)
+        }
+        else if (colors[bedrooms.substring(0,1)] !== undefined) {
             return colors[bedrooms.substring(0,1)];
-        else
+        }
+        else {
             return colors[0];
+        }
     }
 
     var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};
