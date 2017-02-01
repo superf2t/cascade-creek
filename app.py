@@ -76,27 +76,27 @@ def show_log_page(minutes=30):
 #########
 
 @login_manager.user_loader
-def user_loader(email):
-    if email not in users:
+def user_loader(un):
+    if un not in vars.users:
         return
 
     user = User()
-    user.id = email
+    user.id = un
     return user
 
 
 @login_manager.request_loader
 def request_loader(request):
-    email = request.form.get('email')
-    if email not in users:
+    un = request.form.get('un')
+    if un not in vars.users:
         return
 
     user = User()
-    user.id = email
+    user.id = un
 
     # DO NOT ever store passwords in plaintext and always compare password
     # hashes using constant-time comparison!
-    user.is_authenticated = request.form['pw'] == users[email]['pw']
+    user.is_authenticated = request.form['pw'] == vars.users[un]['pw']
 
     return user
 
