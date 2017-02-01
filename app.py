@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import vars
 import utils
 import utils_db
+from classes.user import User
+import flask_login
 
 from pages.place import place
 from pages.queue import queue
@@ -11,21 +13,54 @@ from pages.queue import queue
 ##########
 
 app = Flask(__name__)
+app.secret_key = "giggy in da hiz"
 app.register_blueprint(place, url_prefix='/place')
 app.register_blueprint(queue, url_prefix='/queue')
+
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
+
+users = {
+    'travis': {'pw': 'smok3y'},
+    'guest': {'pw': 'let me in'}
+}
 
 #########
 # PAGES #
 #########
 
 @app.route("/")
+@flask_login.login_required
 def hello_world_page():
     utils.log(None, 'hello_world_page', 'page load')
     places = utils_db.get_places()
     return render_template("home.html", places=places, count=len(places), google_api_key_js_map=vars.google_api_key_js_map)
 
 
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template("login.html")
+
+    un = request.form['un']
+    try:
+        if request.form['pw'] == users[un]['pw']:
+            user = User()
+            user.id = un
+            flask_login.login_user(user)
+            return redirect('/')
+    except:
+        pass
+
+    return render_template("login.html", error="No workie, try again")
+
+@app.route('/logout')
+def logout():
+    flask_login.logout_user()
+    return redirect("/login")
+
 @app.route('/log')
+@flask_login.login_required
 def show_log_page(minutes=30):
     utils.log(None, 'show_log_page', None)
 
@@ -40,6 +75,40 @@ def show_log_page(minutes=30):
         logs = get_log(time_delta=minutes)
 
     return render_template("show_log.html", logs=logs, minutes=int(minutes))
+
+#########
+# LOGIN #
+#########
+
+@login_manager.user_loader
+def user_loader(email):
+    if email not in users:
+        return
+
+    user = User()
+    user.id = email
+    return user
+
+
+@login_manager.request_loader
+def request_loader(request):
+    email = request.form.get('email')
+    if email not in users:
+        return
+
+    user = User()
+    user.id = email
+
+    # DO NOT ever store passwords in plaintext and always compare password
+    # hashes using constant-time comparison!
+    user.is_authenticated = request.form['pw'] == users[email]['pw']
+
+    return user
+
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return redirect("/login")
+
 
 ##################
 # Non-page URL"s #

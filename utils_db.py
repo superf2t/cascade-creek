@@ -160,6 +160,22 @@ def insert_place(place):
 
     return True
 
+def save_place_monthly_costs(place_id, monthly_property_tax_per_100k, monthly_mortgage_insurance_per_100k, monthly_short_term_insurance_per_100k, monthly_utilities_per_sq_ft, monthly_internet_fee):
+    utils.log(None, 'save_place_monthly_costs', 'Updating place table with new monthly costs for place_id: %s' % place_id)
+
+    sql = "update place " \
+          "set monthly_property_tax_per_100k = %s, " \
+            "monthly_mortgage_insurance_per_100k = %s, " \
+            "monthly_short_term_insurance_per_100k = %s, " \
+            "monthly_utilities_per_sq_ft = %s, " \
+            "monthly_internet_fee = %s " \
+          "where s_google_place_id = %s"
+    params = (monthly_property_tax_per_100k, monthly_mortgage_insurance_per_100k, monthly_short_term_insurance_per_100k, monthly_utilities_per_sq_ft, monthly_internet_fee, place_id)
+    print sql % params
+    utils.pg_sql(sql, params)
+    return "Successfully updated monthly costs"
+
+
 def insert_session(session_id, place_id, place_name):
     utils.log(session_id, 'insert_session', 'Insert row into Session table')
 

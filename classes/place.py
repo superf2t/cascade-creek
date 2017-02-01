@@ -62,6 +62,12 @@ class Place:
             self.sw_lng = result[0]['s_sw_lng']
             self.listing_count = result[0]['listing_count']
             self.set_img_url()
+            self.monthly_property_tax_per_100k = result[0]['monthly_property_tax_per_100k'] or ""
+            self.monthly_mortgage_insurance_per_100k = result[0]['monthly_mortgage_insurance_per_100k'] or ""
+            self.monthly_short_term_insurance_per_100k = result[0]['monthly_short_term_insurance_per_100k'] or ""
+            self.monthly_utilities_per_sq_ft = result[0]['monthly_utilities_per_sq_ft'] or ""
+            self.monthly_internet_fee = result[0]['monthly_internet_fee'] or ""
+
 
     def set_parent_place(self, parent_place):
         self.parent = Place(parent_place.place_id, parent_place.name, parent_place.lat, parent_place.lng,

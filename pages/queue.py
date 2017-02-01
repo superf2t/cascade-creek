@@ -10,10 +10,12 @@ import time
 import math
 from decimal import Decimal
 import requests
+import flask_login
 
 import pdb
 
 queue = Blueprint('queue', __name__, template_folder='templates')
+login_manager = flask_login.LoginManager()
 
 #########
 # PAGES #
@@ -21,6 +23,7 @@ queue = Blueprint('queue', __name__, template_folder='templates')
 
 # get search listings from airbnb
 @queue.route("/process_place_queue")
+@flask_login.login_required
 def process_place_queue_page():
     utils.log(None, 'process_place_queue_page', 'page load')
     #try checking to see if we're at home
@@ -28,6 +31,7 @@ def process_place_queue_page():
     return render_template("process_place_queue.html", check_yo_self=check_yo_self)
 
 @queue.route("/queue_all_calendar")
+@flask_login.login_required
 def queue_all_calendar_page():
     utils.log(None, 'queue_all_calendar_page', None)
     sessions = get_sessions()
@@ -42,6 +46,7 @@ def queue_all_calendar_page():
     return render_template("queue_all_calendar.html", sessions=sessions, count=sessions_count, queued=queued, queued_count=queued_count)
 
 @queue.route("/queue_all_calendar/<session_id>")
+@flask_login.login_required
 def queue_all_calendar_id_page(session_id):
     count = queue_calendar_sqs_for_session(session_id)
     return redirect("/queue_all_calendar?session_id=%s&count=%s" % (session_id, count))
@@ -52,6 +57,7 @@ def queue_all_calendar_id_page(session_id):
 ##################
 
 @queue.route("/_process_place_queue")
+@flask_login.login_required
 def process_place_queue_api():
     utils.log(None, 'process_place_queue_api', 'Preparing to process queue')
     output = get_a_message_and_process_it()        
