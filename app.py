@@ -13,17 +13,12 @@ from pages.queue import queue
 ##########
 
 app = Flask(__name__)
-app.secret_key = "giggy in da hiz"
+app.secret_key = vars.app_secret_key
 app.register_blueprint(place, url_prefix='/place')
 app.register_blueprint(queue, url_prefix='/queue')
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
-
-users = {
-    'travis': {'pw': 'smok3y'},
-    'guest': {'pw': 'let me in'}
-}
 
 #########
 # PAGES #
@@ -44,7 +39,7 @@ def login():
 
     un = request.form['un']
     try:
-        if request.form['pw'] == users[un]['pw']:
+        if request.form['pw'] == vars.users[un]['pw']:
             user = User()
             user.id = un
             flask_login.login_user(user)

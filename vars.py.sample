@@ -2,6 +2,8 @@
 
 import boto3
 
+app_secret_key = "secret key goes here"
+
 google_api_key_geocode = "key goes here"
 google_api_key_static_map = "key goes here"
 google_api_key_js_map = "key goes here"
@@ -15,3 +17,20 @@ sqs_place = 'url to place queue goes here'
 sqs = boto3.resource('sqs', aws_access_key_id=vars.aws_access_key_id, aws_secret_access_key=vars.aws_secret_access_key)
 
 pg_conn_string = "host='db host' dbname='db name' user='un' password='pw'"
+
+colors = [
+    "#677889",
+    "#994db6",
+    "#2f8bc1",
+    "#2cb76b",
+    "#e98a26",
+    "#ea5744",
+    "#c74231",
+    "#17aa90",
+    "#f4a610"
+]
+
+users = {
+    'user 1': {'pw': 'pw for user 1'},
+    'user 2': {'pw': 'pw for user 2'}
+}
