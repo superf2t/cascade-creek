@@ -156,109 +156,182 @@
             <div class="modal-content">
                 <div class="modal-body">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h3>Monthly Projection for <span id="profit_loss_address"></span></h3>
+                    
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h3>Proforma for <span id="profit_loss_address"></span></h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3 col-sm-offset-1">
+                            <h5>Bedrooms: <span id="profit_loss_bedrooms"></span></h5>
+                        </div>
+                        <div class="col-sm-3">
+                            <h5>Bathrooms: <span id="profit_loss_bathrooms"></span></h5>
+                        </div>
+                        <div class="col-sm-3">
+                            <h5>Sq/Ft: <span id="profit_loss_sq_ft"></span></h5>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-12"><h4>Acquisition</h4></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Price:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_price"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Down payment:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_down_payment"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Closing costs:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_closing_costs"></span>
+                        </div>
+                    </div>
 
-                    <table class="table table-striped td-right">
-                        <tr>
-                            <th>Bedrooms</th>
-                            <td id="profit_loss_bedrooms"></td>
-                        </tr>
-                        <tr>
-                            <th>Bathrooms</th>
-                            <td id="profit_loss_bathrooms"></td>
-                        </tr>
-                        <tr>
-                            <th>Sq/Ft</th>
-                            <td id="profit_loss_sq_ft"></td>
-                        </tr>
-                        <tr>
-                            <th>Price</th>
-                            <td id="profit_loss_price"></td>
-                        </tr>
-                        <tr>
-                            <th>Down payment</th>
-                            <td id="profit_loss_down_payment"></td>
-                        </tr>
-                        <tr>
-                            <th>Closing costs</th>
-                            <td id="profit_loss_closing_costs"></td>
-                        </tr>
-                        <tr>
-                            <th>Mortgage Payment</th>
-                            <td id="profit_loss_mortgage_payment"></td>
-                        </tr>
-                        <tr>
-                            <th>Property tax</th>
-                            <td id="profit_loss_property_tax"></td>
-                        </tr>
-                        <tr>
-                            <th>Mortgage insurance</th>
-                            <td id="profit_loss_mortgage_insurance"></td>
-                        </tr>
-                        <tr>
-                            <th>Short Term Insurance</th>
-                            <td id="profit_loss_short_term_insurance"></td>
-                        </tr>
-                        <tr>
-                            <th>HOA</th>
-                            <td id="profit_loss_hoa">???</td>
-                        </tr>
-                        <tr>
-                            <th>Utilities + Internet</th>
-                            <td id="profit_loss_utilities_internet"></td>
-                        </tr>
-                        <tr>
-                            <th>Repairs</th>
-                            <td id="profit_loss_repairs"></td>
-                        </tr>
-                        <tr>
-                            <th>Management Fee</th>
-                            <td id="profit_loss_management_fee"></td>
-                        </tr>
-                        
-                        <tr>
-                            <th>OpEx/Mo</th>
-                            <td id="profit_loss_op_ex_per_month"></td>
-                        </tr>
-                        <tr>
-                            <th>OpEx/Yr</th>
-                            <td id="profit_loss_op_ex_per_year"></td>
-                        </tr>
-                        
-                        <tr>
-                            <th>Monthly Net Avg</th>
-                            <td id="profit_loss_monthly_net_average"></td>
-                        </tr>
-                        <tr>
-                            <th>Yearly Net Avg</th>
-                            <td id="profit_loss_yearly_net_average"></td>
-                        </tr>
-                        <tr>
-                            <th>Yearly ROI Avg</th>
-                            <td id="profit_loss_yearly_roi_average"></td>
-                        </tr>
-                        <tr>
-                            <th>CAP Rate Avg</th>
-                            <td id="profit_loss_cap_rate_average"></td>
-                        </tr>
-                        
-                        <tr>
-                            <th>Monthly Net 80%</th>
-                            <td id="profit_loss_monthly_net_80"></td>
-                        </tr>
-                        <tr>
-                            <th>Yearly Net 80%</th>
-                            <td id="profit_loss_yearly_net_80"></td>
-                        </tr>
-                        <tr>
-                            <th>Yearly ROI 80%</th>
-                            <td id="profit_loss_yearly_roi_80"></td>
-                        </tr>
-                        <tr>
-                            <th>CAP Rate 80%</th>
-                            <td id="profit_loss_cap_rate_80"></td>
-                        </tr>
-                    </table>
+                    <div class="row">
+                        <div class="col-sm-12"><h4>Revenue</h4></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Average Revenue:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_bookings_average"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">80th% Revenue:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_bookings_eighty_percent"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12"><h4>Costs</h4></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Mortgage payment:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_mortgage_payment"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Property tax:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_property_tax"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Mortgage insurance:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_mortgage_insurance"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Short Term Insurance:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_short_term_insurance"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">HOA:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_hoa">???</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Utilities + Internet:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_utilities_internet"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Repairs:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_repairs"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Management Fee:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_management_fee"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Monthly Operating Expense:</b></div>
+                        <div class="col-sm-5">
+                            <b><span id="profit_loss_op_ex_per_month"></span></b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Annual Operating Expense:</b></div>
+                        <div class="col-sm-5">
+                            <b><span id="profit_loss_op_ex_per_year"></span></b>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12"><h4>Average Return</h4></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Monthly net profit:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_monthly_net_average"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Annual net profit:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_yearly_net_average"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Annual ROI:</b></div>
+                        <div class="col-sm-5">
+                            <b><span id="profit_loss_yearly_roi_average"></span></b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Cap rate:</b></div>
+                        <div class="col-sm-5">
+                            <b><span id="profit_loss_cap_rate_average"></span></b>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12"><h4>80th Percentile Return</h4></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Monthly net profit:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_monthly_net_80"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1">Annual net profit:</div>
+                        <div class="col-sm-5">
+                            <span id="profit_loss_yearly_net_80"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Annual ROI:</b></div>
+                        <div class="col-sm-5">
+                            <b><span id="profit_loss_yearly_roi_80"></span></b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Cap rate:</b></div>
+                        <div class="col-sm-5">
+                            <b><span id="profit_loss_cap_rate_80"></span></b>
+                        </div>
+                    </div>
+                    
                 </div> <!-- /.modal-body -->
             </div> <!-- /.modal-content -->
         </div> <!-- /.modal-dialog -->
@@ -277,7 +350,6 @@
             zoom: 3
         });
 
-
         var rectangle = new google.maps.Rectangle({
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
@@ -291,7 +363,9 @@
                 east: {{ place.ne_lng }},
                 west: {{ place.sw_lng }}
             }
-        });    
+        });
+
+        getListings();  
     }
 
     /* ajaxFunctions */
@@ -371,77 +445,92 @@
 
         $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(results) {
     
-            //loop and put markers on screen
-            for (i = 0; i < results.page.cards.length; i++) {
-                
-                card = results.page.cards[i];
-
-                if (card.beds !== undefined) {
-
-                    house_analysis = singleHouseAnalysis(marker);
-                    this_bookings = getAvgBookingsByBedrooms(card.beds);
-                    avg_bookings_80 = this_bookings.eighty_pct;
-
-                    offset = Math.random() / 5000;
-                    offset2 = Math.random() / 5000;
-
-                    var latLng = new google.maps.LatLng(card.latLng[0] + offset, card.latLng[1] + offset2);
-
-                    var marker = new google.maps.Marker({
-                        map: map,
-                        position: latLng,
-                        icon: {
-                            path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
-                            scale: 2,
-                            labelOrigin: new google.maps.Point(0, 8),
-                            strokeColor: getColor(card.beds)
-                        },
-                        label: {
-                            text: card.shortPrice + ' (' + card.beds + ')',
-                            color: getColor(card.beds),
-                            fontSize: '10px',
-
-                        },
-                        address: card.streetAddress,
-                        bedrooms: card.beds,
-                        bathrooms: card.baths,
-                        price: card.price,
-                        sqft: card.sqft
-                    });
-                    marker.note = '<div>' +
-                                    '<table width="100%"><tr>' +
-                                    '<td align="center" style="padding-right: 20px;">' +
-                                        '<h3 style="margin-top: 0;"><a href="https://www.trulia.com' + card.cardUrl + '" target="_new">' + card.streetAddress + '</a></h3>' +
-                                        '<img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="180" style="margin-left: 15px;"></td>' +
-                                    '<td style="padding-top: 30px;">' +
-                                        '<table class="table table-striped smallme">' +
-                                        '<tr><th>Beds/Baths:</th><td>' + card.beds + ' / ' + card.baths + '</td></tr>' +
-                                        '<tr><th>Sq/ft:</th><td>' + card.sqft + '</td></tr>' +
-                                        '<tr><th>Location:</th><td>' + card.footer.location + '</td></tr>' +
-                                        '<tr><th>Price:</th><td>' + card.price + '</td></tr>' +
-                                        '<tr><th>Revenue/mo:</th><td>' + displayNumber(avg_bookings_80, 0, "$") + '</td></tr>' +
-                                        '<tr><th>Cost/mo:</th><td>' + displayNumber(house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
-                                        '<tr><th>Net profit/mo:</th><td>' + displayNumber(avg_bookings_80 - house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
-                                        '<tr><th>ROI:</th><td>' + displayNumber(house_analysis.yearly_roi_80, 2, "%") + '</td></tr>' +
-                                        '<tr><th>Cap rate:</th><td>' + displayNumber(house_analysis.cap_rate_80, 2, "%") + '</td></tr>' +
-                                        '<tr><th colspan="2" align="right"><a href="#modal_house_analysis" data-toggle="modal">Details</a></th></tr>' +
-                                        '</table>' +
-                                    '</td>' +
-                                    '</tr></table>' +
-                                  '</div>';
-
-                    forSaleMarkers.push(marker);
+            if (results.success != false) {
+                //loop and put markers on screen
+                for (i = 0; i < results.page.cards.length; i++) {
                     
-                    var infoWindow = new google.maps.InfoWindow();
+                    card = results.page.cards[i];
 
-                    marker.addListener('click', function() {
-                        infoWindow.setContent(this.note);
-                        infoWindow.open(this.getMap(), this);
-                        singleHouseAnalysis(this, true);
-                    });
+                    if (card.beds !== undefined) {
+
+                        offset = Math.random() / 5000;
+                        offset2 = Math.random() / 5000;
+
+                        var latLng = new google.maps.LatLng(card.latLng[0] + offset, card.latLng[1] + offset2);
+
+                        var marker = new google.maps.Marker({
+                            map: map,
+                            position: latLng,
+                            icon: {
+                                /*
+                                path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
+                                scale: 2,
+                                labelOrigin: new google.maps.Point(0, 8),
+                                strokeColor: getColor(card.beds)
+                                */
+                                url: '/static/images/home' + cleanNumber(card.beds) + '.png',
+                                labelOrigin: new google.maps.Point(0, 25),
+                                scaledSize: {
+                                    height: 20,
+                                    width: 20
+                                }
+                            },
+                            label: {
+                                text: 'wait for it...',
+                                color: getColor(card.beds),
+                                fontSize: '10px'
+                            },
+                            address: card.streetAddress,
+                            bedrooms: card.beds,
+                            bathrooms: card.baths,
+                            price: card.price,
+                            sqft: card.sqft
+                        });
+
+                        house_analysis = singleHouseAnalysis(marker);
+                        this_bookings = getAvgBookingsByBedrooms(card.beds);
+                        avg_bookings_80 = this_bookings.eighty_pct;
+
+                        marker.label.text = card.shortPrice + '(' + displayNumber(house_analysis.cap_rate_80, 2, "%") + ')';
+
+                        marker.note = '<div>' +
+                                        '<table width="100%"><tr>' +
+                                        '<td align="center" style="padding-right: 20px;">' +
+                                            '<h3 style="margin-top: 0;"><a href="https://www.trulia.com' + card.cardUrl + '" target="_new">' + card.streetAddress + '</a></h3>' +
+                                            '<img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="180" style="margin-left: 15px;"></td>' +
+                                        '<td style="padding-top: 30px;">' +
+                                            '<table class="table table-striped smallme">' +
+                                            '<tr><th>Beds/Baths:</th><td>' + card.beds + ' / ' + card.baths + '</td></tr>' +
+                                            '<tr><th>Sq/ft:</th><td>' + card.sqft + '</td></tr>' +
+                                            '<tr><th>Location:</th><td>' + card.footer.location + '</td></tr>' +
+                                            '<tr><th>Price:</th><td>' + card.price + '</td></tr>' +
+                                            '<tr><th>Revenue/mo:</th><td>' + displayNumber(avg_bookings_80, 0, "$") + '</td></tr>' +
+                                            '<tr><th>Cost/mo:</th><td>' + displayNumber(house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
+                                            '<tr><th>Net profit/mo:</th><td>' + displayNumber(avg_bookings_80 - house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
+                                            '<tr><th>ROI:</th><td>' + displayNumber(house_analysis.yearly_roi_80, 2, "%") + '</td></tr>' +
+                                            '<tr><th>Cap rate:</th><td>' + displayNumber(house_analysis.cap_rate_80, 2, "%") + '</td></tr>' +
+                                            '<tr><th colspan="2" align="right"><a href="#modal_house_analysis" data-toggle="modal">Details</a></th></tr>' +
+                                            '</table>' +
+                                        '</td>' +
+                                        '</tr></table>' +
+                                      '</div>';
+
+                        forSaleMarkers.push(marker);
+                        
+                        var infoWindow = new google.maps.InfoWindow();
+
+                        marker.addListener('click', function() {
+                            infoWindow.setContent(this.note);
+                            infoWindow.open(this.getMap(), this);
+                            singleHouseAnalysis(this, true);
+                        });
+
+                    }
 
                 }
-
+            }
+            else {
+                console.log('results.page.cards is undefined. Here is results:\n' + JSON.stringify(results) + '\n');
             }
 
             //markerCluster = new MarkerClusterer(map, forSaleMarkers, {imagePath: '/static/images/m'});
@@ -568,65 +657,68 @@
     }
 
     function singleHouseAnalysis(marker, display_it) {
-        profit_loss_address = marker.address;
-        profit_loss_bedrooms = cleanNumber(marker.bedrooms);
-        profit_loss_bathrooms = cleanNumber(marker.bathrooms);
-        profit_loss_sq_ft = cleanNumber(marker.sqft);
-        profit_loss_price = cleanNumber(marker.price);
-        profit_loss_down_payment = calculateDownPayment(profit_loss_price);
-        profit_loss_closing_costs = calculateClosingCosts(profit_loss_price);
+        address = marker.address;
+        bedrooms = cleanNumber(marker.bedrooms);
+        bathrooms = cleanNumber(marker.bathrooms);
+        sq_ft = cleanNumber(marker.sqft);
+        price = cleanNumber(marker.price);
+        down_payment = calculateDownPayment(price);
+        closing_costs = calculateClosingCosts(price);
         
-        profit_loss_mortgage_payment = calculateMortgage(profit_loss_price);
-        profit_loss_property_tax = calculatePropertyTax(profit_loss_price);
-        profit_loss_mortgage_insurance = calculateMortgageInsurance(profit_loss_price);
-        profit_loss_short_term_insurance = calculateShortTermInsurance(profit_loss_price);
-        profit_loss_hoa = 0;
-        profit_loss_utilities_internet = calculateUtilitiesInternet(profit_loss_sq_ft);
-        profit_loss_repairs = calculateRepairs(profit_loss_price);
+        mortgage_payment = calculateMortgage(price);
+        property_tax = calculatePropertyTax(price);
+        mortgage_insurance = calculateMortgageInsurance(price);
+        short_term_insurance = calculateShortTermInsurance(price);
+        hoa = 0;
+        utilities_internet = calculateUtilitiesInternet(sq_ft);
+        repairs = calculateRepairs(price);
         
-        revenue = getAvgBookingsByBedrooms(profit_loss_bedrooms);
+        revenue = getAvgBookingsByBedrooms(bedrooms);
         bookings_eighty_percent = revenue.eighty_pct;
         bookings_average = revenue.avg_bookings;
-        profit_loss_management_fee = calculateManagementFee(bookings_eighty_percent);
+        management_fee = calculateManagementFee(bookings_eighty_percent);
 
-        profit_loss_op_ex_per_month = profit_loss_mortgage_payment + profit_loss_property_tax + profit_loss_mortgage_insurance + profit_loss_short_term_insurance + profit_loss_hoa + profit_loss_utilities_internet + profit_loss_repairs + profit_loss_management_fee;
-        profit_loss_op_ex_per_year = profit_loss_op_ex_per_month * 12;
+        op_ex_per_month = mortgage_payment + property_tax + mortgage_insurance + short_term_insurance + hoa + utilities_internet + repairs + management_fee;
+        op_ex_per_year = op_ex_per_month * 12;
 
-        profit_loss_monthly_net_average = bookings_average - profit_loss_op_ex_per_month;
-        profit_loss_yearly_net_average = profit_loss_monthly_net_average * 12;
-        profit_loss_yearly_roi_average = profit_loss_yearly_net_average / (profit_loss_down_payment + profit_loss_closing_costs);
-        profit_loss_cap_rate_average= profit_loss_yearly_net_average / profit_loss_price;
+        monthly_net_average = bookings_average - op_ex_per_month;
+        yearly_net_average = monthly_net_average * 12;
+        yearly_roi_average = yearly_net_average / (down_payment + closing_costs);
+        cap_rate_average = calculateCapRate(price, bookings_average, op_ex_per_month, mortgage_payment);
 
-        profit_loss_monthly_net_80 = bookings_eighty_percent - profit_loss_op_ex_per_month;
-        profit_loss_yearly_net_80 = profit_loss_monthly_net_80 * 12;
-        profit_loss_yearly_roi_80 = (profit_loss_yearly_net_80 / (profit_loss_down_payment + profit_loss_closing_costs)) * 100;
-        profit_loss_cap_rate_80 = (profit_loss_yearly_net_80 / profit_loss_price) * 100;
+        monthly_net_80 = bookings_eighty_percent - op_ex_per_month;
+        yearly_net_80 = monthly_net_80 * 12;
+        yearly_roi_80 = (yearly_net_80 / (down_payment + closing_costs)) * 100;
+        cap_rate_80 = calculateCapRate(price, bookings_eighty_percent, op_ex_per_month, mortgage_payment);
+
 
         house_object = { 
-            "address": profit_loss_address,
-            "bedrooms": profit_loss_bedrooms,
-            "bathrooms": profit_loss_bathrooms,
-            "sq_ft": profit_loss_sq_ft,
-            "price": profit_loss_price,
-            "down_payment": profit_loss_down_payment,
-            "closing_costs": profit_loss_closing_costs,
-            "mortgage_payment": profit_loss_mortgage_payment,
-            "property_tax": profit_loss_property_tax,
-            "mortgage_insurance": profit_loss_mortgage_insurance,
-            "short_term_insurance": profit_loss_short_term_insurance,
-            "utilities_internet": profit_loss_utilities_internet,
-            "repairs": profit_loss_repairs,
-            "management_fee": profit_loss_management_fee,
-            "op_ex_per_month": profit_loss_op_ex_per_month, 
-            "op_ex_per_year": profit_loss_op_ex_per_year,
-            "monthly_net_average": profit_loss_monthly_net_average,
-            "yearly_net_average": profit_loss_yearly_net_average,
-            "yearly_roi_average": profit_loss_yearly_roi_average,
-            "cap_rate_average": profit_loss_cap_rate_average,
-            "monthly_net_80": profit_loss_monthly_net_80, 
-            "yearly_net_80": profit_loss_yearly_net_80,
-            "yearly_roi_80": profit_loss_yearly_roi_80,
-            "cap_rate_80": profit_loss_cap_rate_80
+            "address": address,
+            "bedrooms": bedrooms,
+            "bathrooms": bathrooms,
+            "sq_ft": sq_ft,
+            "price": price,
+            "down_payment": down_payment,
+            "closing_costs": closing_costs,
+            "bookings_average": bookings_average,
+            "bookings_eighty_percent": bookings_eighty_percent,
+            "mortgage_payment": mortgage_payment,
+            "property_tax": property_tax,
+            "mortgage_insurance": mortgage_insurance,
+            "short_term_insurance": short_term_insurance,
+            "utilities_internet": utilities_internet,
+            "repairs": repairs,
+            "management_fee": management_fee,
+            "op_ex_per_month": op_ex_per_month, 
+            "op_ex_per_year": op_ex_per_year,
+            "monthly_net_average": monthly_net_average,
+            "yearly_net_average": yearly_net_average,
+            "yearly_roi_average": yearly_roi_average,
+            "cap_rate_average": cap_rate_average,
+            "monthly_net_80": monthly_net_80, 
+            "yearly_net_80": yearly_net_80,
+            "yearly_roi_80": yearly_roi_80,
+            "cap_rate_80": cap_rate_80
         }
 
         if (display_it) {
@@ -644,6 +736,8 @@
         $('#profit_loss_price').text(displayNumber(house_object.price, 0, '$'));
         $('#profit_loss_down_payment').text(displayNumber(house_object.down_payment, 0, '$'));
         $('#profit_loss_closing_costs').text(displayNumber(house_object.closing_costs, 0, '$'));
+        $('#profit_loss_bookings_average').text(displayNumber(house_object.bookings_average, 0, '$'));
+        $('#profit_loss_bookings_eighty_percent').text(displayNumber(house_object.bookings_eighty_percent, 0, '$'));
         $('#profit_loss_mortgage_payment').text(displayNumber(house_object.mortgage_payment, 0, '$'));
         $('#profit_loss_property_tax').text(displayNumber(house_object.property_tax, 0, '$'));
         $('#profit_loss_mortgage_insurance').text(displayNumber(house_object.mortgage_insurance, 0, '$'));
@@ -722,6 +816,16 @@
         return bookings * ({{ place.monthly_management_fee }} / 100);
     }
 
+    function calculateCapRate(price, monthly_bookings, monthly_op_ex, monthly_mortgage) {
+        //op_ex comes with mortgage cost included, but cap rate does not take
+        //  mortgage into account so it needs to be deducted
+        cap_rate = (((monthly_bookings - (monthly_op_ex - monthly_mortgage)) * 12) / price) * 100;
+        if (cap_rate == Infinity)
+            return 'n/a';
+        else
+            return cap_rate;
+    }
+
     function cleanNumber(num) {
         if (num != undefined)
             return Number(num.replace(/[^0-9\.]+/g,""));
@@ -730,25 +834,27 @@
     }
 
     function displayNumber(num, num_decimals, display_type) {
-        //with_comma = num.toFixed(num_decimals).replace(/(\d)(?=(\d{3})+\.)/g, ',');
-        //with_comma = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        if (num != undefined) {
+            var parts = num.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            
+            if (parts[1] && num_decimals > 0) {
+                parts[1] = parts[1].substring(0, num_decimals);
+                parts = parts.join(".");
+            }
+            else
+                parts = parts[0];
 
-        var parts = num.toString().split(".");
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        
-        if (parts[1] && num_decimals > 0) {
-            parts[1] = parts[1].substring(0, num_decimals);
-            parts = parts.join(".");
+            if (display_type == "$")
+                return "$" + parts;
+            else if (display_type == "%")
+                return parts + "%";
+            else
+                return parts;
         }
-        else
-            parts = parts[0];
-
-        if (display_type == "$")
-            return "$" + parts;
-        else if (display_type == "%")
-            return parts + "%";
-        else
-            return parts;
+        else {
+            return 0;
+        }
 
     }
 
@@ -776,13 +882,12 @@
 
     </script>
     
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key_js_map }}&callback=initMap">
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key_js_map }}">
     </script>
-
     <script>
     $(document).ready(function() {
-        getListings();
+        //getListings();
+        initMap();
     });
     </script>
 
