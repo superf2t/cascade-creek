@@ -9,6 +9,8 @@
     table.td-right td { text-align: right; }
     .smallme tbody tr th { padding: 2px; }
     .smallme tbody tr td { padding: 2px; }
+
+    .bottom-line { border-bottom: solid 1px #cccccc; }
     </style>
 {% endblock %}
 {% block body %}
@@ -158,18 +160,18 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     
                     <div class="row">
-                        <div class="col-sm-12">
+                        <div class="col-sm-12 text-center">
                             <h3>Proforma for <span id="profit_loss_address"></span></h3>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-3 col-sm-offset-1">
+                        <div class="col-sm-4 text-center">
                             <h5>Bedrooms: <span id="profit_loss_bedrooms"></span></h5>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4 text-center">
                             <h5>Bathrooms: <span id="profit_loss_bathrooms"></span></h5>
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4 text-center">
                             <h5>Sq/Ft: <span id="profit_loss_sq_ft"></span></h5>
                         </div>
                     </div>
@@ -179,19 +181,19 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Price:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_price"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Down payment:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_down_payment"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Closing costs:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_closing_costs"></span>
                         </div>
                     </div>
@@ -201,13 +203,13 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Average Revenue:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_bookings_average"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">80th% Revenue:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_bookings_eighty_percent"></span>
                         </div>
                     </div>
@@ -217,61 +219,61 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Mortgage payment:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_mortgage_payment"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Property tax:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_property_tax"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Mortgage insurance:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_mortgage_insurance"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Short Term Insurance:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_short_term_insurance"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">HOA:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_hoa">???</span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Utilities + Internet:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_utilities_internet"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Repairs:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_repairs"></span>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1">Management Fee:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-6 col-sm-offset-1 bottom-line">Management Fee:</div>
+                        <div class="col-sm-2 text-right bottom-line">
                             <span id="profit_loss_management_fee"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1"><b>Monthly Operating Expense:</b></div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <b><span id="profit_loss_op_ex_per_month"></span></b>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1"><b>Annual Operating Expense:</b></div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <b><span id="profit_loss_op_ex_per_year"></span></b>
                         </div>
                     </div>
@@ -281,25 +283,25 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Monthly net profit:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_monthly_net_average"></span>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1">Annual net profit:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-6 col-sm-offset-1 bottom-line">Annual net profit:</div>
+                        <div class="col-sm-2 text-right bottom-line">
                             <span id="profit_loss_yearly_net_average"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1"><b>Annual ROI:</b></div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <b><span id="profit_loss_yearly_roi_average"></span></b>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1"><b>Cap rate:</b></div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <b><span id="profit_loss_cap_rate_average"></span></b>
                         </div>
                     </div>
@@ -309,25 +311,25 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1">Monthly net profit:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <span id="profit_loss_monthly_net_80"></span>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1">Annual net profit:</div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-6 col-sm-offset-1 bottom-line">Annual net profit:</div>
+                        <div class="col-sm-2 text-right bottom-line">
                             <span id="profit_loss_yearly_net_80"></span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1"><b>Annual ROI:</b></div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <b><span id="profit_loss_yearly_roi_80"></span></b>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-1"><b>Cap rate:</b></div>
-                        <div class="col-sm-5">
+                        <div class="col-sm-2 text-right">
                             <b><span id="profit_loss_cap_rate_80"></span></b>
                         </div>
                     </div>
@@ -532,6 +534,7 @@
             }
             else {
                 console.log('results.page.cards is undefined. Here is results:\n' + JSON.stringify(results) + '\n');
+
             }
 
             //markerCluster = new MarkerClusterer(map, forSaleMarkers, {imagePath: '/static/images/m'});
@@ -684,12 +687,12 @@
 
         monthly_net_average = bookings_average - op_ex_per_month;
         yearly_net_average = monthly_net_average * 12;
-        yearly_roi_average = yearly_net_average / (down_payment + closing_costs);
+        yearly_roi_average = calculateROI(yearly_net_average, down_payment, closing_costs);
         cap_rate_average = calculateCapRate(price, bookings_average, op_ex_per_month, mortgage_payment);
 
         monthly_net_80 = bookings_eighty_percent - op_ex_per_month;
         yearly_net_80 = monthly_net_80 * 12;
-        yearly_roi_80 = (yearly_net_80 / (down_payment + closing_costs)) * 100;
+        yearly_roi_80 = calculateROI(yearly_net_80, down_payment, closing_costs);
         cap_rate_80 = calculateCapRate(price, bookings_eighty_percent, op_ex_per_month, mortgage_payment);
 
 
@@ -815,6 +818,10 @@
 
     function calculateManagementFee(bookings) {
         return bookings * ({{ place.monthly_management_fee }} / 100);
+    }
+
+    function calculateROI(yearly_net_average, down_payment, closing_costs) {
+        return (yearly_net_average / (down_payment + closing_costs)) * 100
     }
 
     function calculateCapRate(price, monthly_bookings, monthly_op_ex, monthly_mortgage) {
