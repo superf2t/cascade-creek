@@ -6,6 +6,7 @@
         width: 100%;
     }
     .w180 { width: 180px; }
+    table.td-right td { text-align: right; }
     </style>
 {% endblock %}
 {% block body %}
@@ -19,17 +20,129 @@
     <h3>{{ place.listing_count }} Listings</h3>
 
     <br />
-    <br />
 
     <div id="map"></div>
 
     <div id="avg_by_num_bedrooms_div"></div>
 
+    <div id="house_analysis">
+    <h3>Monthly Projection for <span id="profit_loss_address"></span></h3>
+    <table class="table table-striped td-right">
+        <tr>
+            <th>Bedrooms</th>
+            <td id="profit_loss_bedrooms"></td>
+        </tr>
+        <tr>
+            <th>Bathrooms</th>
+            <td id="profit_loss_bathrooms"></td>
+        </tr>
+        <tr>
+            <th>Sq/Ft</th>
+            <td id="profit_loss_sq_ft"></td>
+        </tr>
+        <tr>
+            <th>Price</th>
+            <td id="profit_loss_price"></td>
+        </tr>
+        <tr>
+            <th>Down payment</th>
+            <td id="profit_loss_down_payment"></td>
+        </tr>
+        <tr>
+            <th>Closing costs</th>
+            <td id="profit_loss_closing_costs"></td>
+        </tr>
+        <tr>
+            <th>Mortgage Payment</th>
+            <td id="profit_loss_mortgage_payment"></td>
+        </tr>
+        <tr>
+            <th>Property tax</th>
+            <td id="profit_loss_property_tax"></td>
+        </tr>
+        <tr>
+            <th>Mortgage insurance</th>
+            <td id="profit_loss_mortgage_insurance"></td>
+        </tr>
+        <tr>
+            <th>Short Term Insurance</th>
+            <td id="profit_loss_short_term_insurance"></td>
+        </tr>
+        <tr>
+            <th>HOA</th>
+            <td id="profit_loss_hoa">???</td>
+        </tr>
+        <tr>
+            <th>Utilities + Internet</th>
+            <td id="profit_loss_utilities_internet"></td>
+        </tr>
+        <tr>
+            <th>Repairs</th>
+            <td id="profit_loss_repairs"></td>
+        </tr>
+        <tr>
+            <th>Management Fee</th>
+            <td id="profit_loss_management_fee"></td>
+        </tr>
+        
+        <tr>
+            <th>OpEx/Mo</th>
+            <td id="profit_loss_op_ex_per_month"></td>
+        </tr>
+        <tr>
+            <th>OpEx/Yr</th>
+            <td id="profit_loss_op_ex_per_year"></td>
+        </tr>
+        
+        <tr>
+            <th>Monthly Net Avg</th>
+            <td id="profit_loss_monthly_net_average"></td>
+        </tr>
+        <tr>
+            <th>Yearly Net Avg</th>
+            <td id="profit_loss_yearly_net_average"></td>
+        </tr>
+        <tr>
+            <th>Yearly ROI Avg</th>
+            <td id="profit_loss_yearly_roi_average"></td>
+        </tr>
+        <tr>
+            <th>CAP Rate Avg</th>
+            <td id="profit_loss_cap_rate_average"></td>
+        </tr>
+        
+        <tr>
+            <th>Monthly Net 80%</th>
+            <td id="profit_loss_monthly_net_80"></td>
+        </tr>
+        <tr>
+            <th>Yearly Net 80%</th>
+            <td id="profit_loss_yearly_net_80"></td>
+        </tr>
+        <tr>
+            <th>Yearly ROI 80%</th>
+            <td id="profit_loss_yearly_roi_80"></td>
+        </tr>
+        <tr>
+            <th>CAP Rate 80%</th>
+            <td id="profit_loss_cap_rate_80"></td>
+        </tr>
+    </table>
+    </div>
     
     <form>
     <h3>Monthly Ownership Costs</h3>
     <div class="alert alert-success" style="display: none;" id="monthly_ownership_costs_message"></div>
     <table class="table">
+        <tr>
+            <th>Monthly Management Fee %</th>
+            <td class="w180">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="monthly_management_fee" placeholder="Percent" value="{{ place.monthly_management_fee }}">
+                    <div class="input-group-addon">%</div>
+                </div>
+            </td>
+        </tr>
         <tr>
             <th>Monthly Property Tax/$100k</th>
             <td class="w180">
@@ -67,7 +180,7 @@
             </td>
         </tr>
         <tr>
-            <th>Monthly Intenet Service</th>
+            <th>Monthly Internet Service</th>
             <td class="w180">
                 <div class="input-group">
                     <div class="input-group-addon">$</div>
@@ -86,7 +199,7 @@
     {% raw %}
     <script type="text/x-tmpl" id="avg_by_num_bedrooms_tmpl">
 
-            <h3>Average by Num Bedrooms</h3>
+            <h3>Monthly Average by Num Bedrooms</h3>
             <table class="table table-striped">
             <tr>
                 <th align="center">Bedrooms</th>
@@ -94,13 +207,13 @@
                 <th align="center">Avg Monthly</th>
                 <th align="center">80th%</th>
                 <th align="center"># For Sale</th>
-                <th align="center">Avg Mortgage</th>
+                <th align="center">Avg Total Cost of Ownership</th>
                 <th align="center">Diff</th>
                 <th align="center">Diff %</th>
             </tr>
             {% for (var i=0; i < o.length; i++) { %}
                 <tr id="bedroms_{{ row.i_bedrooms }}">
-                    <td align="center" style="background-color: {%= get_color(o[i].i_bedrooms) %}">{%= o[i].i_bedrooms %}</td>
+                    <td align="center" style="background-color: {%= getColor(o[i].i_bedrooms) %}">{%= o[i].i_bedrooms %}</td>
                     <td align="center">{%= o[i].count_homes %}</td>
                     <td align="center">${%= o[i].avg_bookings %}</td>
                     <td align="center">${%= o[i].eighty_pct %}</td>
@@ -110,13 +223,13 @@
                         {% } %}
                     </td>
                     <td align="center">
-                        {% if (o[i].mortgage_cost) { %}
-                            ${%= o[i].mortgage_cost %}
+                        {% if (o[i].avg_cost) { %}
+                            ${%= o[i].avg_cost %}
                         {% } %}
                     </td>
-                    {% if (o[i].avg_bookings && o[i].mortgage_cost) { 
-                        var diff = o[i].eighty_pct - o[i].mortgage_cost;
-                        var diff_pct = Math.round(((o[i].eighty_pct / o[i].mortgage_cost) - 1) * 100);
+                    {% if (o[i].avg_bookings && o[i].avg_cost) { 
+                        var diff = o[i].eighty_pct - o[i].avg_cost;
+                        var diff_pct = Math.round(((o[i].eighty_pct / o[i].avg_cost) - 1) * 100);
                         var td_class = "";
                         if (diff > 0) {
                             td_class = "success";
@@ -142,7 +255,11 @@
 
     <script>
     var map = null;
-    
+    var forSaleMarkers = [];
+
+    var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};
+    var colors = {{ colors|tojson }};
+
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
             zoom: 3
@@ -162,21 +279,11 @@
                 east: {{ place.ne_lng }},
                 west: {{ place.sw_lng }}
             }
-        });
+        });    
     }
 
-    function getCircle(count_nights_rank, total_bookings_rank, color) {
-        return {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: color,
-            fillOpacity: Number(total_bookings_rank) / 100, //.2,
-            scale: Math.sqrt(count_nights_rank), //Math.pow(2, count_nights_rank) / 2,
-            strokeColor: 'white',
-            strokeWeight: .5
-        };
-    }
-
-    function getListings() {
+    /* ajaxFunctions */
+    function getListings () {
         $.getJSON('/place/_listings_geojson/{{ place.place_id }}', function(listings) {
 
             //var heatmapData = [];
@@ -194,7 +301,7 @@
                     map: map,
                     position: latLng,
                     clickable: true,
-                    icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'], get_color(listings[i]['bedrooms']))
+                    icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'], getColor(listings[i]['bedrooms']))
                 });
                 marker.note = '<div>' + 
                                 '<h3>' + listings[i]['name'] + '</h3>' +
@@ -244,8 +351,6 @@
         });
     }
 
-    var forSaleMarkers = [];
-
     function getForSale(ne_lat, ne_lng, sw_lat, sw_lng) {
 
         $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(results) {
@@ -269,17 +374,23 @@
                             path: google.maps.SymbolPath.FORWARD_OPEN_ARROW,
                             scale: 2,
                             labelOrigin: new google.maps.Point(0, 8),
-                            strokeColor: get_color(card.beds)
+                            strokeColor: getColor(card.beds)
                         },
                         label: {
                             text: card.shortPrice + ' (' + card.beds + ')',
-                            color: get_color(card.beds),
+                            color: getColor(card.beds),
                             fontSize: '10px',
 
                         },
+                        address: card.streetAddress,
                         bedrooms: card.beds,
-                        price: card.price
+                        bathrooms: card.baths,
+                        price: card.price,
+                        sqft: card.sqft
                     });
+
+                    houseAnalysis = singleHouseAnalysis(marker);
+
                     marker.note = '<div>' + 
                                     '<h3>' + card.streetAddress + '</h3>' +
                                     '<table width="100%"><tr><td>' +
@@ -288,8 +399,10 @@
                                     '<b>Sq/ft:</b> ' + card.sqft + '<br>' +
                                     '<b>Location:</b> ' + card.footer.location + '<br>' +
                                     '<b>Price:</b> ' + card.price + '<br>' +
-                                    '<b>Mortgage @ 20%:</b> $' + monthlyPayment(cleanDollar(card.price)) + '<br>' +
-                                    '<b>Mortgage @ 50%:</b> $' + monthlyPayment(cleanDollar(card.price), 50) + '<br>' +
+                                    '<b>Mortgage @ 20%:</b> $' + calculateMortgage(cleanNumber(card.price)) + '<br>' +
+                                    '<b>Total cost/mo:</b> $' + houseAnalysis.op_ex_per_month + '<br>' +
+                                    '<b>% ROI @ 80%:</b> ' + houseAnalysis.cap_rate_80 + '%<br>' +
+                                    '<b>Cap rate:</b> $999<br>' +
                                     '<b>Trulia:</b> <a href="https://www.trulia.com' + card.cardUrl + '" target="_new">Trulia site</a><br>' +
                                     '</td>' +
                                     '<td align="center"><img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="140" style="margin-left: 15px;"></td>' +
@@ -303,6 +416,7 @@
                     marker.addListener('click', function() {
                         infoWindow.setContent(this.note);
                         infoWindow.open(this.getMap(), this);
+                        singleHouseAnalysis(this, true);
                     });
 
                 }
@@ -311,140 +425,10 @@
 
             //markerCluster = new MarkerClusterer(map, forSaleMarkers, {imagePath: '/static/images/m'});
 
-            update_avg_cost_analysis();
+            updateAvgCostAnalysis();
             
         });
     }
-
-    function clearForSale() {
-
-        for (var i = 0; i < forSaleMarkers.length; i++) {
-            forSaleMarkers[i].setMap(null);
-        }
-        
-        forSaleMarkers = [];
-
-        for (var i = 0; i < avg_bookings_by_bedrooms.length; i++) {
-            avg_bookings_by_bedrooms[i].count_for_sale = 0;
-            avg_bookings_by_bedrooms[i].avg_cost = 0;
-            avg_bookings_by_bedrooms[i].mortgage_cost = 0;    
-        }
-        
-    }
-
-    //loop through the forSaleMarkers array and update the average monthly table
-    function update_avg_cost_analysis() {
-
-        var arr = [];
-
-        //loop through 1-5 bedroom houses and update total num houses and total cost
-        for (i = 0; i <= 5; i++) {
-            
-            var result = $.grep(forSaleMarkers, function(item){
-                return item.bedrooms == i + 'bd';
-            });
-
-            if (result.length > 0) {
-                var exists = arr[i];
-                if (!exists)
-                    arr[i] = {"count_for_sale": 0, "total_cost": 0, "avg_cost": 0, "mortgage_cost": 0};
-
-                thisListing = arr[i];
-
-                for (j = 0; j < result.length; j++) {
-
-                    if ($.isNumeric(result[j].price.replace(/[^0-9\.]+/g,""))) {
-                        thisListing.count_for_sale += 1;
-                        var price = cleanDollar(result[j].price);
-                        thisListing.total_cost += price;
-                    }
-                }
-
-                //get mortgage cost
-                if (thisListing.total_cost > 0) {
-                    thisListing.avg_cost = Math.round(thisListing.total_cost / thisListing.count_for_sale);
-                    thisListing.mortgage_cost = monthlyPayment(thisListing.avg_cost);
-                }
-
-                //merge into avg_bookings_by_bedrooms
-                var result = $.grep(avg_bookings_by_bedrooms, function(item) {
-                    return item.i_bedrooms == i;
-                });
-
-                var exists = avg_bookings_by_bedrooms[i];
-                if (!exists)
-                    avg_bookings_by_bedrooms[i] = {"avg_bookings": 0, 
-                                                    "count_homes": 0, 
-                                                    "i_bedrooms": i, 
-                                                    "count_for_sale": 0,
-                                                    "avg_cost": 0,
-                                                    "mortgage_cost": 0
-                                                }
-
-                avg_bookings_by_bedrooms[i].count_for_sale = thisListing.count_for_sale;
-                avg_bookings_by_bedrooms[i].avg_cost = thisListing.avg_cost;
-                avg_bookings_by_bedrooms[i].mortgage_cost = thisListing.mortgage_cost;
-                    
-            }
-            
-        }
-
-        displayAvgBookingsTable(avg_bookings_by_bedrooms);
-    }
-
-
-    // house_cost = cost of house
-    // down_payment_pct = down payment percent
-    // loan_years = years of loan
-    // interest_rate = yearly interest rate
-    function monthlyPayment(house_cost, down_payment_percent, loan_years, interest_rate) {
-        //default values
-        if (down_payment_percent === undefined)
-            down_payment_percent = 20;
-
-        if (loan_years === undefined)
-            loan_years = 30;
-
-        if (interest_rate === undefined)
-            interest_rate = 5;
-
-        //get principle, amount of loan
-        var principle = house_cost * (1 - (down_payment_percent / 100));
-        //turn years into months
-        var num_months = loan_years * 12;
-        //turn i into a monthly interest rate
-        interest_rate = interest_rate / 100 / 12;
-        return Math.round(principle * interest_rate * (Math.pow(1 + interest_rate, num_months)) / (Math.pow(1 + interest_rate, num_months) - 1));
-    }
-
-    function cleanDollar(num) {
-        return Number(num.replace(/[^0-9\.]+/g,""));
-    }
-
-    function displayAvgBookingsTable(data) {
-        $('#avg_by_num_bedrooms_div').html(tmpl("avg_by_num_bedrooms_tmpl", data));
-
-        //if a particular home listing get >200% returns, make it stand out
-        //do it here
-        //forSaleMarkers[0].setLabel({"color":"Red", "text":"yo yo"});
-    }
-
-    function get_color(bedrooms) {
-        if (colors[bedrooms] !== undefined) {
-            return colors[bedrooms]
-        }
-        else if (colors[bedrooms.substring(0,1)] !== undefined) {
-            return colors[bedrooms.substring(0,1)];
-        }
-        else {
-            return colors[0];
-        }
-    }
-
-    var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};
-    var colors = {{ colors|tojson }};
-
-    
 
     /* handle monthly costs form submit */
     function handle_submit_monthly_fee_form() {
@@ -468,6 +452,305 @@
                 $('#monthly_ownership_costs_message').hide();
             }, 3000);
         });
+    }
+
+        
+    /* displayFunctions */
+
+    function getCircle(count_nights_rank, total_bookings_rank, color) {
+        return {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: color,
+            fillOpacity: Number(total_bookings_rank) / 100, //.2,
+            scale: Math.sqrt(count_nights_rank), //Math.pow(2, count_nights_rank) / 2,
+            strokeColor: 'white',
+            strokeWeight: .5
+        };
+    }
+
+    function clearForSale() {
+
+        for (var i = 0; i < forSaleMarkers.length; i++) {
+            forSaleMarkers[i].setMap(null);
+        }
+        
+        forSaleMarkers = [];
+
+        for (var i = 0; i < avg_bookings_by_bedrooms.length; i++) {
+            avg_bookings_by_bedrooms[i].count_for_sale = 0;
+            avg_bookings_by_bedrooms[i].avg_cost = 0;
+        }
+        
+    }
+
+    //loop through the forSaleMarkers array and update the average monthly table
+    function updateAvgCostAnalysis() {
+
+        var arr = [];
+
+        //loop through 1-5 bedroom houses and update total num houses and total cost
+        for (i = 0; i <= 5; i++) {
+            
+            var result = $.grep(forSaleMarkers, function(item){
+                return item.bedrooms == i + 'bd';
+            });
+
+            if (result.length > 0) {
+                var exists = arr[i];
+                if (!exists)
+                    arr[i] = {"count_for_sale": 0, "total_cost": 0, "avg_cost": 0, "mortgage_cost": 0};
+
+                thisListing = arr[i];
+
+                for (j = 0; j < result.length; j++) {
+
+                    if ($.isNumeric(result[j].price.replace(/[^0-9\.]+/g,""))) {
+                        thisListing.count_for_sale += 1;
+                        //var price = cleanNumber(result[j].price);
+                        var all_costs = singleHouseAnalysis(result[j], false);
+                        thisListing.total_cost += all_costs.op_ex_per_month;
+                    }
+                }
+
+                //get mortgage cost
+                if (thisListing.total_cost > 0) {
+                    thisListing.avg_cost = Math.round(thisListing.total_cost / thisListing.count_for_sale);
+                    //commented 20170203 b/c we are calculating total ownership costs now instead of just mortgage costs
+                    //thisListing.mortgage_cost = calculateMortgage(thisListing.avg_cost);
+                }
+
+                var exists = avg_bookings_by_bedrooms[i];
+                if (!exists)
+                    avg_bookings_by_bedrooms[i] = {"avg_bookings": 0, 
+                                                    "count_homes": 0, 
+                                                    "i_bedrooms": i, 
+                                                    "count_for_sale": 0,
+                                                    "avg_cost": 0
+                                                }
+
+                avg_bookings_by_bedrooms[i].count_for_sale = thisListing.count_for_sale;
+                avg_bookings_by_bedrooms[i].avg_cost = thisListing.avg_cost;
+                    
+            }
+            
+        }
+
+        
+        var result = $.grep(avg_bookings_by_bedrooms, function(item) {
+            return typeof(item) == "object";
+        });
+        displayAvgBookingsTable(result);
+    }
+
+    function displayAvgBookingsTable(data) {
+        $('#avg_by_num_bedrooms_div').html(tmpl("avg_by_num_bedrooms_tmpl", data));
+    }
+
+    function singleHouseAnalysis(marker, display_it) {
+        profit_loss_address = marker.address;
+        profit_loss_bedrooms = cleanNumber(marker.bedrooms);
+        profit_loss_bathrooms = cleanNumber(marker.bathrooms);
+        profit_loss_sq_ft = cleanNumber(marker.sqft);
+        profit_loss_price = cleanNumber(marker.price);
+        profit_loss_down_payment = calculateDownPayment(profit_loss_price);
+        profit_loss_closing_costs = calculateClosingCosts(profit_loss_price);
+        
+        profit_loss_mortgage_payment = calculateMortgage(profit_loss_price);
+        profit_loss_property_tax = calculatePropertyTax(profit_loss_price);
+        profit_loss_mortgage_insurance = calculateMortgageInsurance(profit_loss_price);
+        profit_loss_short_term_insurance = calculateShortTermInsurance(profit_loss_price);
+        profit_loss_hoa = 0;
+        profit_loss_utilities_internet = calculateUtilitiesInternet(profit_loss_sq_ft);
+        profit_loss_repairs = calculateRepairs(profit_loss_price);
+        
+        revenue = getAvgBookingsByBedrooms(profit_loss_bedrooms);
+        bookings_eighty_percent = revenue.eighty_pct;
+        bookings_average = revenue.avg_bookings;
+        profit_loss_management_fee = calculateManagementFee(bookings_eighty_percent);
+
+        profit_loss_op_ex_per_month = profit_loss_mortgage_payment + profit_loss_property_tax + profit_loss_mortgage_insurance + profit_loss_short_term_insurance + profit_loss_hoa + profit_loss_utilities_internet + profit_loss_repairs + profit_loss_management_fee;
+        profit_loss_op_ex_per_year = profit_loss_op_ex_per_month * 12;
+
+        profit_loss_monthly_net_average = bookings_average - profit_loss_op_ex_per_month;
+        profit_loss_yearly_net_average = profit_loss_monthly_net_average * 12;
+        profit_loss_yearly_roi_average = profit_loss_yearly_net_average / (profit_loss_down_payment + profit_loss_closing_costs);
+        profit_loss_cap_rate_average= profit_loss_yearly_net_average / profit_loss_price;
+
+        profit_loss_monthly_net_80 = bookings_eighty_percent - profit_loss_op_ex_per_month;
+        profit_loss_yearly_net_80 = profit_loss_monthly_net_80 * 12;
+        profit_loss_yearly_roi_80 = profit_loss_yearly_net_80 / (profit_loss_down_payment + profit_loss_closing_costs);
+        profit_loss_cap_rate_80 = profit_loss_yearly_net_80 / profit_loss_price;
+
+        house_object = { 
+            "address": profit_loss_address,
+            "bedrooms": profit_loss_bedrooms,
+            "bathrooms": profit_loss_bathrooms,
+            "sq_ft": profit_loss_sq_ft,
+            "price": profit_loss_price,
+            "down_payment": profit_loss_down_payment,
+            "closing_costs": profit_loss_closing_costs,
+            "mortgage_payment": profit_loss_mortgage_payment,
+            "property_tax": profit_loss_property_tax,
+            "mortgage_insurance": profit_loss_mortgage_insurance,
+            "short_term_insurance": profit_loss_short_term_insurance,
+            "utilities_internet": profit_loss_utilities_internet,
+            "repairs": profit_loss_repairs,
+            "management_fee": profit_loss_management_fee,
+            "op_ex_per_month": profit_loss_op_ex_per_month, 
+            "op_ex_per_year": profit_loss_op_ex_per_year,
+            "monthly_net_average": profit_loss_monthly_net_average,
+            "yearly_net_average": profit_loss_yearly_net_average,
+            "yearly_roi_average": profit_loss_yearly_roi_average,
+            "cap_rate_average": profit_loss_cap_rate_average,
+            "monthly_net_80": profit_loss_monthly_net_80, 
+            "yearly_net_80": profit_loss_yearly_net_80,
+            "yearly_roi_80": profit_loss_yearly_roi_80,
+            "cap_rate_80": profit_loss_cap_rate_80
+        }
+
+        if (display_it) {
+            displayHouseAnalysis(house_object);
+        }
+
+        return house_object;
+    }
+
+    function displayHouseAnalysis(house_object) {
+        $('#profit_loss_address').text(house_object.address);
+        $('#profit_loss_bedrooms').text(house_object.bedrooms);
+        $('#profit_loss_bathrooms').text(house_object.bathrooms);
+        $('#sq_ft').text(displayNumber(house_object.sq_ft, 0));
+        $('#price').text(displayNumber(house_object.price, 0, '$'));
+        $('#down_payment').text(displayNumber(house_object.down_payment, 0, '$'));
+        $('#closing_costs').text(displayNumber(house_object.closing_costs, 0, '$'));
+        $('#mortgage_payment').text(displayNumber(house_object.mortgage_payment, 0, '$'));
+        $('#property_tax').text(displayNumber(house_object.property_tax, 0, '$'));
+        $('#mortgage_insurance').text(displayNumber(house_object.mortgage_insurance, 0, '$'));
+        $('#short_term_insurance').text(displayNumber(house_object.short_term_insurance, 0, '$'));
+        $('#utilities_internet').text(displayNumber(house_object.utilities_internet, 0, '$'));
+        $('#repairs').text(displayNumber(house_object.repairs, 0, '$'));
+        $('#management_fee').text(displayNumber(house_object.management_fee, 0, '$'));
+        $('#op_ex_per_month').text(displayNumber(house_object.op_ex_per_month, 0, '$'));
+        $('#op_ex_per_year').text(displayNumber(house_object.op_ex_per_year, 0, '$'));
+        $('#monthly_net_average').text(displayNumber(house_object.monthly_net_average, 0, '$'));
+        $('#yearly_net_average').text(displayNumber(house_object.yearly_net_average, 0, '$'));
+        $('#yearly_roi_average').text(displayNumber(house_object.yearly_roi_average, 2, '%'));
+        $('#cap_rate_average').text(displayNumber(house_object.cap_rate_average, 2, '%'));
+        $('#monthly_net_80').text(displayNumber(house_object.monthly_net_80, 0, '$'));
+        $('#yearly_net_80').text(displayNumber(house_object.yearly_net_80, 0, '$'));
+        $('#yearly_roi_80').text(displayNumber(house_object.yearly_roi_80, 2, '%'));
+        $('#cap_rate_80').text(displayNumber(house_object.cap_rate_80, 2, '%'));
+    }
+
+    
+    /* utilFunctions */
+
+    // house_cost = cost of house
+    // down_payment_pct = down payment percent
+    // loan_years = years of loan
+    // interest_rate = yearly interest rate
+    function calculateMortgage(house_cost, down_payment_percent, loan_years, interest_rate) {
+        //default values
+        if (down_payment_percent === undefined)
+            down_payment_percent = 20;
+
+        if (loan_years === undefined)
+            loan_years = 30;
+
+        if (interest_rate === undefined)
+            interest_rate = 5;
+
+        //get principle, amount of loan
+        var principle = house_cost * (1 - (down_payment_percent / 100));
+        //turn years into months
+        var num_months = loan_years * 12;
+        //turn i into a monthly interest rate
+        interest_rate = interest_rate / 100 / 12;
+        return Math.round(principle * interest_rate * (Math.pow(1 + interest_rate, num_months)) / (Math.pow(1 + interest_rate, num_months) - 1));
+    }
+
+    function calculateDownPayment(house_price) {
+        return house_price * .2;
+    }
+
+    function calculateClosingCosts(house_price) {
+        return house_price * .04;
+    }
+
+    function calculatePropertyTax(house_price) {
+        return ((house_price / 100000) * {{ place.monthly_property_tax_per_100k }});
+    }
+
+    function calculateMortgageInsurance(house_price) {
+        return ((house_price / 100000) * {{ place.monthly_mortgage_insurance_per_100k }});
+    }
+
+    function calculateShortTermInsurance(house_price) {
+        return ((house_price / 100000) * {{ place.monthly_short_term_insurance_per_100k }});
+    }
+
+    function calculateUtilitiesInternet(house_sqft) {
+        return (house_sqft * {{ place.monthly_utilities_per_sq_ft }}) + {{ place.monthly_internet_fee }};
+    }
+
+    function calculateRepairs(house_price) {
+        return (house_price * .01) / 12;
+    }
+
+    function calculateManagementFee(bookings) {
+        return bookings * ({{ place.monthly_management_fee }} / 100);
+    }
+
+    function cleanNumber(num) {
+        if (num != undefined)
+            return Number(num.replace(/[^0-9\.]+/g,""));
+        else
+            return false;
+    }
+
+    function displayNumber(num, num_decimals, display_type) {
+        //with_comma = num.toFixed(num_decimals).replace(/(\d)(?=(\d{3})+\.)/g, ',');
+        //with_comma = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        var parts = num.toString().split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        
+        if (parts[1] && num_decimals > 0) {
+            parts[1] = parts[1].substring(0, num_decimals);
+            parts = parts.join(".");
+        }
+        else
+            parts = parts[0];
+
+        if (display_type == "$")
+            return "$" + parts;
+        else if (display_type == "%")
+            return parts + "%";
+        else
+            return parts;
+
+    }
+
+    function getAvgBookingsByBedrooms(rooms) {
+        var result = $.grep(avg_bookings_by_bedrooms, function(item){
+            return item.i_bedrooms == cleanNumber(rooms.toString());
+        });
+        if (result > 0)
+            return result[0];
+        else
+            return { "eighty_pct": 0, "avg_bookings": 0 };
+    }
+
+    function getColor(bedrooms) {
+        if (colors[bedrooms] !== undefined) {
+            return colors[bedrooms]
+        }
+        else if (colors[bedrooms.substring(0,1)] !== undefined) {
+            return colors[bedrooms.substring(0,1)];
+        }
+        else {
+            return colors[0];
+        }
     }
 
     </script>

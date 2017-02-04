@@ -107,6 +107,7 @@ def submit_monthly_fee_form_api(place_id):
     monthly_short_term_insurance_per_100k = None
     monthly_utilities_per_sq_ft = None
     monthly_internet_fee = None
+    monthly_management_fee = None
 
     if request.args.get('monthly_property_tax_per_100k'):
         monthly_property_tax_per_100k = request.args.get('monthly_property_tax_per_100k')
@@ -123,12 +124,16 @@ def submit_monthly_fee_form_api(place_id):
     if request.args.get('monthly_internet_fee'):
         monthly_internet_fee = request.args.get('monthly_internet_fee')
 
+    if request.args.get('monthly_management_fee'):
+        monthly_management_fee = request.args.get('monthly_management_fee')
+
     result = utils_db.save_place_monthly_costs(place_id, 
                         monthly_property_tax_per_100k,
                         monthly_mortgage_insurance_per_100k,
                         monthly_short_term_insurance_per_100k,
                         monthly_utilities_per_sq_ft,
-                        monthly_internet_fee)
+                        monthly_internet_fee,
+                        monthly_management_fee)
 
     return jsonify(result)
 
