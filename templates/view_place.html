@@ -7,6 +7,8 @@
     }
     .w180 { width: 180px; }
     table.td-right td { text-align: right; }
+    .smallme tbody tr th { padding: 2px; }
+    .smallme tbody tr td { padding: 2px; }
     </style>
 {% endblock %}
 {% block body %}
@@ -25,111 +27,6 @@
 
     <div id="avg_by_num_bedrooms_div"></div>
 
-    <div id="house_analysis">
-    <h3>Monthly Projection for <span id="profit_loss_address"></span></h3>
-    <table class="table table-striped td-right">
-        <tr>
-            <th>Bedrooms</th>
-            <td id="profit_loss_bedrooms"></td>
-        </tr>
-        <tr>
-            <th>Bathrooms</th>
-            <td id="profit_loss_bathrooms"></td>
-        </tr>
-        <tr>
-            <th>Sq/Ft</th>
-            <td id="profit_loss_sq_ft"></td>
-        </tr>
-        <tr>
-            <th>Price</th>
-            <td id="profit_loss_price"></td>
-        </tr>
-        <tr>
-            <th>Down payment</th>
-            <td id="profit_loss_down_payment"></td>
-        </tr>
-        <tr>
-            <th>Closing costs</th>
-            <td id="profit_loss_closing_costs"></td>
-        </tr>
-        <tr>
-            <th>Mortgage Payment</th>
-            <td id="profit_loss_mortgage_payment"></td>
-        </tr>
-        <tr>
-            <th>Property tax</th>
-            <td id="profit_loss_property_tax"></td>
-        </tr>
-        <tr>
-            <th>Mortgage insurance</th>
-            <td id="profit_loss_mortgage_insurance"></td>
-        </tr>
-        <tr>
-            <th>Short Term Insurance</th>
-            <td id="profit_loss_short_term_insurance"></td>
-        </tr>
-        <tr>
-            <th>HOA</th>
-            <td id="profit_loss_hoa">???</td>
-        </tr>
-        <tr>
-            <th>Utilities + Internet</th>
-            <td id="profit_loss_utilities_internet"></td>
-        </tr>
-        <tr>
-            <th>Repairs</th>
-            <td id="profit_loss_repairs"></td>
-        </tr>
-        <tr>
-            <th>Management Fee</th>
-            <td id="profit_loss_management_fee"></td>
-        </tr>
-        
-        <tr>
-            <th>OpEx/Mo</th>
-            <td id="profit_loss_op_ex_per_month"></td>
-        </tr>
-        <tr>
-            <th>OpEx/Yr</th>
-            <td id="profit_loss_op_ex_per_year"></td>
-        </tr>
-        
-        <tr>
-            <th>Monthly Net Avg</th>
-            <td id="profit_loss_monthly_net_average"></td>
-        </tr>
-        <tr>
-            <th>Yearly Net Avg</th>
-            <td id="profit_loss_yearly_net_average"></td>
-        </tr>
-        <tr>
-            <th>Yearly ROI Avg</th>
-            <td id="profit_loss_yearly_roi_average"></td>
-        </tr>
-        <tr>
-            <th>CAP Rate Avg</th>
-            <td id="profit_loss_cap_rate_average"></td>
-        </tr>
-        
-        <tr>
-            <th>Monthly Net 80%</th>
-            <td id="profit_loss_monthly_net_80"></td>
-        </tr>
-        <tr>
-            <th>Yearly Net 80%</th>
-            <td id="profit_loss_yearly_net_80"></td>
-        </tr>
-        <tr>
-            <th>Yearly ROI 80%</th>
-            <td id="profit_loss_yearly_roi_80"></td>
-        </tr>
-        <tr>
-            <th>CAP Rate 80%</th>
-            <td id="profit_loss_cap_rate_80"></td>
-        </tr>
-    </table>
-    </div>
-    
     <form>
     <h3>Monthly Ownership Costs</h3>
     <div class="alert alert-success" style="display: none;" id="monthly_ownership_costs_message"></div>
@@ -207,7 +104,7 @@
                 <th align="center">Avg Monthly</th>
                 <th align="center">80th%</th>
                 <th align="center"># For Sale</th>
-                <th align="center">Avg Total Cost of Ownership</th>
+                <th align="center">Avg Cost of Ownership</th>
                 <th align="center">Diff</th>
                 <th align="center">Diff %</th>
             </tr>
@@ -252,6 +149,121 @@
 
     </script>
     {% endraw %}
+
+
+    <div class="modal fade" id="modal_house_analysis">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h3>Monthly Projection for <span id="profit_loss_address"></span></h3>
+
+                    <table class="table table-striped td-right">
+                        <tr>
+                            <th>Bedrooms</th>
+                            <td id="profit_loss_bedrooms"></td>
+                        </tr>
+                        <tr>
+                            <th>Bathrooms</th>
+                            <td id="profit_loss_bathrooms"></td>
+                        </tr>
+                        <tr>
+                            <th>Sq/Ft</th>
+                            <td id="profit_loss_sq_ft"></td>
+                        </tr>
+                        <tr>
+                            <th>Price</th>
+                            <td id="profit_loss_price"></td>
+                        </tr>
+                        <tr>
+                            <th>Down payment</th>
+                            <td id="profit_loss_down_payment"></td>
+                        </tr>
+                        <tr>
+                            <th>Closing costs</th>
+                            <td id="profit_loss_closing_costs"></td>
+                        </tr>
+                        <tr>
+                            <th>Mortgage Payment</th>
+                            <td id="profit_loss_mortgage_payment"></td>
+                        </tr>
+                        <tr>
+                            <th>Property tax</th>
+                            <td id="profit_loss_property_tax"></td>
+                        </tr>
+                        <tr>
+                            <th>Mortgage insurance</th>
+                            <td id="profit_loss_mortgage_insurance"></td>
+                        </tr>
+                        <tr>
+                            <th>Short Term Insurance</th>
+                            <td id="profit_loss_short_term_insurance"></td>
+                        </tr>
+                        <tr>
+                            <th>HOA</th>
+                            <td id="profit_loss_hoa">???</td>
+                        </tr>
+                        <tr>
+                            <th>Utilities + Internet</th>
+                            <td id="profit_loss_utilities_internet"></td>
+                        </tr>
+                        <tr>
+                            <th>Repairs</th>
+                            <td id="profit_loss_repairs"></td>
+                        </tr>
+                        <tr>
+                            <th>Management Fee</th>
+                            <td id="profit_loss_management_fee"></td>
+                        </tr>
+                        
+                        <tr>
+                            <th>OpEx/Mo</th>
+                            <td id="profit_loss_op_ex_per_month"></td>
+                        </tr>
+                        <tr>
+                            <th>OpEx/Yr</th>
+                            <td id="profit_loss_op_ex_per_year"></td>
+                        </tr>
+                        
+                        <tr>
+                            <th>Monthly Net Avg</th>
+                            <td id="profit_loss_monthly_net_average"></td>
+                        </tr>
+                        <tr>
+                            <th>Yearly Net Avg</th>
+                            <td id="profit_loss_yearly_net_average"></td>
+                        </tr>
+                        <tr>
+                            <th>Yearly ROI Avg</th>
+                            <td id="profit_loss_yearly_roi_average"></td>
+                        </tr>
+                        <tr>
+                            <th>CAP Rate Avg</th>
+                            <td id="profit_loss_cap_rate_average"></td>
+                        </tr>
+                        
+                        <tr>
+                            <th>Monthly Net 80%</th>
+                            <td id="profit_loss_monthly_net_80"></td>
+                        </tr>
+                        <tr>
+                            <th>Yearly Net 80%</th>
+                            <td id="profit_loss_yearly_net_80"></td>
+                        </tr>
+                        <tr>
+                            <th>Yearly ROI 80%</th>
+                            <td id="profit_loss_yearly_roi_80"></td>
+                        </tr>
+                        <tr>
+                            <th>CAP Rate 80%</th>
+                            <td id="profit_loss_cap_rate_80"></td>
+                        </tr>
+                    </table>
+                </div> <!-- /.modal-body -->
+            </div> <!-- /.modal-content -->
+        </div> <!-- /.modal-dialog -->
+    </div>
+
 
     <script>
     var map = null;
@@ -304,20 +316,24 @@
                     icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'], getColor(listings[i]['bedrooms']))
                 });
                 marker.note = '<div>' + 
-                                '<h3>' + listings[i]['name'] + '</h3>' +
-                                '<table width="100%"><tr><td>' +
-                                '<b>Nightly Rate:</b> ' + listings[i]['rate'] + '<br>' +
-                                '<b>Star rating:</b> ' + listings[i]['star_rating'] + '<br>' +
-                                '<b>Num reviews:</b> ' + listings[i]['count_reviews'] + '<br>' +
-                                '<b>Bedrooms:</b> ' + listings[i]['bedrooms'] + '<br>' +
-                                '<b>Baths:</b> ' + listings[i]['bathrooms'] + '<br>' +
-                                '<b>Beds:</b> ' + listings[i]['beds'] + '<br>' +
-                                '<b>Person capacity:</b> ' + listings[i]['person_capacity'] + '<br>' +
-                                '<b>Avg Monthly Bookings:</b> $' + listings[i]['avg_monthly_bookings'] + '<br>' + 
-                                '<b>Airbnb:</b> <a href="https://www.airbnb.com/rooms/' + listings[i]['listing_id'] + '" target="_new">Go to Airbnb</a><br>' +
+                                '<table width="100%"><tr>' +
+                                '<td align="center" style="padding-right: 20px;">' +
+                                    '<h3 style="margin-top: 0;"><a href="https://www.airbnb.com/rooms/' + listings[i]['listing_id'] + '" target="_new">' + listings[i]['name'] + '</a></h3>' +
+                                    '<img src="' + listings[i]['picture_url'] + '" height="180" style="margin-left: 15px;">' +
                                 '</td>' +
-                                '<td align="center"><img src="' + listings[i]['picture_url'] + '" height="140" style="margin-left: 15px;"></td>' +
-                                '</tr></table>'
+                                '<td style="margin-top: 30px;">' +
+                                    '<table class="table table-striped smallme">' +
+                                    '<tr><th>Nightly Rate:</th><td>' + listings[i]['rate'] + '</td></tr>' +
+                                    '<tr><th>Star rating:</th><td> ' + listings[i]['star_rating'] + '</td></tr>' +
+                                    '<tr><th>Num reviews:</th><td> ' + listings[i]['count_reviews'] + '</td></tr>' +
+                                    '<tr><th>Bedrooms:</th><td> ' + listings[i]['bedrooms'] + '</td></tr>' +
+                                    '<tr><th>Baths:</th><td> ' + listings[i]['bathrooms'] + '</td></tr>' +
+                                    '<tr><th>Beds:</th><td> ' + listings[i]['beds'] + '</td></tr>' +
+                                    '<tr><th>Person capacity:</th><td> ' + listings[i]['person_capacity'] + '</td></tr>' +
+                                    '<tr><th>Avg Monthly Bookings:</th><td> $' + listings[i]['avg_monthly_bookings'] + '</td></tr>' + 
+                                    '</table>' +
+                                '</td>' +
+                                '</tr></table>' +
                                 '</div>';
 
                 var infoWindow = new google.maps.InfoWindow();
@@ -362,6 +378,10 @@
 
                 if (card.beds !== undefined) {
 
+                    house_analysis = singleHouseAnalysis(marker);
+                    this_bookings = getAvgBookingsByBedrooms(card.beds);
+                    avg_bookings_80 = this_bookings.eighty_pct;
+
                     offset = Math.random() / 5000;
                     offset2 = Math.random() / 5000;
 
@@ -388,26 +408,27 @@
                         price: card.price,
                         sqft: card.sqft
                     });
-
-                    houseAnalysis = singleHouseAnalysis(marker);
-
-                    marker.note = '<div>' + 
-                                    '<h3>' + card.streetAddress + '</h3>' +
-                                    '<table width="100%"><tr><td>' +
-                                    '<b>Bedrooms:</b> ' + card.beds + '<br>' +
-                                    '<b>Bathrooms:</b> ' + card.baths + '<br>' +
-                                    '<b>Sq/ft:</b> ' + card.sqft + '<br>' +
-                                    '<b>Location:</b> ' + card.footer.location + '<br>' +
-                                    '<b>Price:</b> ' + card.price + '<br>' +
-                                    '<b>Mortgage @ 20%:</b> $' + calculateMortgage(cleanNumber(card.price)) + '<br>' +
-                                    '<b>Total cost/mo:</b> $' + houseAnalysis.op_ex_per_month + '<br>' +
-                                    '<b>% ROI @ 80%:</b> ' + houseAnalysis.cap_rate_80 + '%<br>' +
-                                    '<b>Cap rate:</b> $999<br>' +
-                                    '<b>Trulia:</b> <a href="https://www.trulia.com' + card.cardUrl + '" target="_new">Trulia site</a><br>' +
+                    marker.note = '<div>' +
+                                    '<table width="100%"><tr>' +
+                                    '<td align="center" style="padding-right: 20px;">' +
+                                        '<h3 style="margin-top: 0;"><a href="https://www.trulia.com' + card.cardUrl + '" target="_new">' + card.streetAddress + '</a></h3>' +
+                                        '<img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="180" style="margin-left: 15px;"></td>' +
+                                    '<td style="padding-top: 30px;">' +
+                                        '<table class="table table-striped smallme">' +
+                                        '<tr><th>Beds/Baths:</th><td>' + card.beds + ' / ' + card.baths + '</td></tr>' +
+                                        '<tr><th>Sq/ft:</th><td>' + card.sqft + '</td></tr>' +
+                                        '<tr><th>Location:</th><td>' + card.footer.location + '</td></tr>' +
+                                        '<tr><th>Price:</th><td>' + card.price + '</td></tr>' +
+                                        '<tr><th>Revenue/mo:</th><td>' + displayNumber(avg_bookings_80, 0, "$") + '</td></tr>' +
+                                        '<tr><th>Cost/mo:</th><td>' + displayNumber(house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
+                                        '<tr><th>Net profit/mo:</th><td>' + displayNumber(avg_bookings_80 - house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
+                                        '<tr><th>ROI:</th><td>' + displayNumber(house_analysis.yearly_roi_80, 2, "%") + '</td></tr>' +
+                                        '<tr><th>Cap rate:</th><td>' + displayNumber(house_analysis.cap_rate_80, 2, "%") + '</td></tr>' +
+                                        '<tr><th colspan="2" align="right"><a href="#modal_house_analysis" data-toggle="modal">Details</a></th></tr>' +
+                                        '</table>' +
                                     '</td>' +
-                                    '<td align="center"><img src="https://thumbs.trulia-cdn.com' + card.photoUrl + '" height="140" style="margin-left: 15px;"></td>' +
-                                    '</tr></table>'
-                                    '</div>';
+                                    '</tr></table>' +
+                                  '</div>';
 
                     forSaleMarkers.push(marker);
                     
@@ -578,8 +599,8 @@
 
         profit_loss_monthly_net_80 = bookings_eighty_percent - profit_loss_op_ex_per_month;
         profit_loss_yearly_net_80 = profit_loss_monthly_net_80 * 12;
-        profit_loss_yearly_roi_80 = profit_loss_yearly_net_80 / (profit_loss_down_payment + profit_loss_closing_costs);
-        profit_loss_cap_rate_80 = profit_loss_yearly_net_80 / profit_loss_price;
+        profit_loss_yearly_roi_80 = (profit_loss_yearly_net_80 / (profit_loss_down_payment + profit_loss_closing_costs)) * 100;
+        profit_loss_cap_rate_80 = (profit_loss_yearly_net_80 / profit_loss_price) * 100;
 
         house_object = { 
             "address": profit_loss_address,
@@ -619,27 +640,27 @@
         $('#profit_loss_address').text(house_object.address);
         $('#profit_loss_bedrooms').text(house_object.bedrooms);
         $('#profit_loss_bathrooms').text(house_object.bathrooms);
-        $('#sq_ft').text(displayNumber(house_object.sq_ft, 0));
-        $('#price').text(displayNumber(house_object.price, 0, '$'));
-        $('#down_payment').text(displayNumber(house_object.down_payment, 0, '$'));
-        $('#closing_costs').text(displayNumber(house_object.closing_costs, 0, '$'));
-        $('#mortgage_payment').text(displayNumber(house_object.mortgage_payment, 0, '$'));
-        $('#property_tax').text(displayNumber(house_object.property_tax, 0, '$'));
-        $('#mortgage_insurance').text(displayNumber(house_object.mortgage_insurance, 0, '$'));
-        $('#short_term_insurance').text(displayNumber(house_object.short_term_insurance, 0, '$'));
-        $('#utilities_internet').text(displayNumber(house_object.utilities_internet, 0, '$'));
-        $('#repairs').text(displayNumber(house_object.repairs, 0, '$'));
-        $('#management_fee').text(displayNumber(house_object.management_fee, 0, '$'));
-        $('#op_ex_per_month').text(displayNumber(house_object.op_ex_per_month, 0, '$'));
-        $('#op_ex_per_year').text(displayNumber(house_object.op_ex_per_year, 0, '$'));
-        $('#monthly_net_average').text(displayNumber(house_object.monthly_net_average, 0, '$'));
-        $('#yearly_net_average').text(displayNumber(house_object.yearly_net_average, 0, '$'));
-        $('#yearly_roi_average').text(displayNumber(house_object.yearly_roi_average, 2, '%'));
-        $('#cap_rate_average').text(displayNumber(house_object.cap_rate_average, 2, '%'));
-        $('#monthly_net_80').text(displayNumber(house_object.monthly_net_80, 0, '$'));
-        $('#yearly_net_80').text(displayNumber(house_object.yearly_net_80, 0, '$'));
-        $('#yearly_roi_80').text(displayNumber(house_object.yearly_roi_80, 2, '%'));
-        $('#cap_rate_80').text(displayNumber(house_object.cap_rate_80, 2, '%'));
+        $('#profit_loss_sq_ft').text(displayNumber(house_object.sq_ft, 0));
+        $('#profit_loss_price').text(displayNumber(house_object.price, 0, '$'));
+        $('#profit_loss_down_payment').text(displayNumber(house_object.down_payment, 0, '$'));
+        $('#profit_loss_closing_costs').text(displayNumber(house_object.closing_costs, 0, '$'));
+        $('#profit_loss_mortgage_payment').text(displayNumber(house_object.mortgage_payment, 0, '$'));
+        $('#profit_loss_property_tax').text(displayNumber(house_object.property_tax, 0, '$'));
+        $('#profit_loss_mortgage_insurance').text(displayNumber(house_object.mortgage_insurance, 0, '$'));
+        $('#profit_loss_short_term_insurance').text(displayNumber(house_object.short_term_insurance, 0, '$'));
+        $('#profit_loss_utilities_internet').text(displayNumber(house_object.utilities_internet, 0, '$'));
+        $('#profit_loss_repairs').text(displayNumber(house_object.repairs, 0, '$'));
+        $('#profit_loss_management_fee').text(displayNumber(house_object.management_fee, 0, '$'));
+        $('#profit_loss_op_ex_per_month').text(displayNumber(house_object.op_ex_per_month, 0, '$'));
+        $('#profit_loss_op_ex_per_year').text(displayNumber(house_object.op_ex_per_year, 0, '$'));
+        $('#profit_loss_monthly_net_average').text(displayNumber(house_object.monthly_net_average, 0, '$'));
+        $('#profit_loss_yearly_net_average').text(displayNumber(house_object.yearly_net_average, 0, '$'));
+        $('#profit_loss_yearly_roi_average').text(displayNumber(house_object.yearly_roi_average, 2, '%'));
+        $('#profit_loss_cap_rate_average').text(displayNumber(house_object.cap_rate_average, 2, '%'));
+        $('#profit_loss_monthly_net_80').text(displayNumber(house_object.monthly_net_80, 0, '$'));
+        $('#profit_loss_yearly_net_80').text(displayNumber(house_object.yearly_net_80, 0, '$'));
+        $('#profit_loss_yearly_roi_80').text(displayNumber(house_object.yearly_roi_80, 2, '%'));
+        $('#profit_loss_cap_rate_80').text(displayNumber(house_object.cap_rate_80, 2, '%'));
     }
 
     
@@ -735,7 +756,7 @@
         var result = $.grep(avg_bookings_by_bedrooms, function(item){
             return item.i_bedrooms == cleanNumber(rooms.toString());
         });
-        if (result > 0)
+        if (result.length > 0)
             return result[0];
         else
             return { "eighty_pct": 0, "avg_bookings": 0 };
