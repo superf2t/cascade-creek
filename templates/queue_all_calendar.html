@@ -17,7 +17,7 @@
         </tr>
         {% for session in sessions %}
             <tr>
-                <td><a href="/queue_all_calendar/{{ session.session_id }}">{{ session.s_session_id }}</a></td>
+                <td><a href="/queue/queue_all_calendar/{{ session.s_session_id }}">{{ session.s_session_id }}</a></td>
                 <td>{{ session.s_name }}</td>
                 <td>{{ session.dt_insert }}</td>
             </tr>

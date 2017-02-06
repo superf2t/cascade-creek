@@ -877,15 +877,21 @@
     }
 
     function getColor(bedrooms) {
-        if (colors[bedrooms] !== undefined) {
-            return colors[bedrooms]
+        try {
+            if (colors[bedrooms] !== undefined) {
+                return colors[bedrooms]
+            }
+            else if (colors[bedrooms.substring(0,1)] !== undefined) {
+                return colors[bedrooms.substring(0,1)];
+            }
+            else {
+                return colors[0];
+            }
         }
-        else if (colors[bedrooms.substring(0,1)] !== undefined) {
-            return colors[bedrooms.substring(0,1)];
-        }
-        else {
+        catch (e) {
             return colors[0];
         }
+        
     }
 
     </script>

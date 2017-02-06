@@ -34,7 +34,7 @@ def process_place_queue_page():
 @flask_login.login_required
 def queue_all_calendar_page():
     utils.log(None, 'queue_all_calendar_page', None)
-    sessions = get_sessions()
+    sessions = utils_db.get_sessions()
     sessions_count = len(sessions)
 
     queued = False
@@ -48,8 +48,8 @@ def queue_all_calendar_page():
 @queue.route("/queue_all_calendar/<session_id>")
 @flask_login.login_required
 def queue_all_calendar_id_page(session_id):
-    count = queue_calendar_sqs_for_session(session_id)
-    return redirect("/queue_all_calendar?session_id=%s&count=%s" % (session_id, count))
+    count = utils_db.queue_calendar_sqs_for_session(session_id)
+    return redirect("/queue/queue_all_calendar?session_id=%s&count=%s" % (session_id, count))
 
 
 ##################

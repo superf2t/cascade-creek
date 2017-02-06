@@ -1,6 +1,9 @@
 import utils
+import utils_sqs
 from classes.place import Place
 import datetime
+
+import pdb
 
 #############################
 # DATABASE HELPER FUNCTIONS #
@@ -301,7 +304,7 @@ def save_calendar_detail(session_id, listing_id, calendar_months):
 def queue_calendar_sqs_for_session(session_id):
     # get all listings with this session id
     
-    listings = utils.pg_sql("select * from listing where s_session_id = %s")
+    listings = utils.pg_sql("select * from listing where s_session_id = %s", (session_id, ))
     if len(listings) == 0:
         utils.log(session_id, 'queue_calendar_sqs_for_session', 'No listings returned for session_id = %s' % session_id)
     else:
@@ -309,7 +312,7 @@ def queue_calendar_sqs_for_session(session_id):
         # loop through listings and queue a calendar sqs
         i = 0
         for listing in listings:
-            insert_sqs_listing_calendar(session_id, listing['listing_id'])
+            utils_sqs.insert_sqs_listing_calendar(session_id, listing['i_listing_id'])
             i += 1
             
         utils.log(session_id, 'queue_calendar_sqs_for_session', 'Queued %s sqs calendar items' % i)
