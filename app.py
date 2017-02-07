@@ -61,13 +61,15 @@ def show_log_page(minutes=30):
 
     if request.args.get('minutes') == 'recent':
         minutes = 9999
-        logs = get_log_most_recent()
+        logs = utils_db.get_log_most_recent()
 
     else:
         if request.args.get('minutes') != None:
             minutes = int(request.args.get('minutes'))
+        else:
+            minutes = 30
 
-        logs = get_log(time_delta=minutes)
+        logs = utils_db.get_log(time_delta=minutes)
 
     return render_template("show_log.html", logs=logs, minutes=int(minutes))
 

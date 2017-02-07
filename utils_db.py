@@ -147,9 +147,11 @@ def get_sessions():
     utils.log(None, 'get_sessions', 'getting all sessions')
 
 
-    response = utils.pg_sql("select s.s_session_id, s.s_google_place_id, p.s_name, s.dt_insert " \
+    response = utils.pg_sql("select s.s_session_id, s.s_google_place_id, p.s_name, max(c.dt_booking_date) as max_booking_date " \
                             "from session s " \
-                                "join place p on s.s_google_place_id = p.s_google_place_id")
+                                "join place p on s.s_google_place_id = p.s_google_place_id " \
+                                "join calendar c on s.s_session_id = c.s_session_id " \
+                            "group by 1, 2, 3")
     return response
 
 
