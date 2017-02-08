@@ -63,6 +63,7 @@ def get_listings(place_id):
         "        and l.s_room_type = 'Entire home/apt' " \
         "        and l.d_star_rating >= 4.0 " \
         "        and l.d_rate < 1000 " \
+        "        and c.dt_booking_date < now() " \
         "    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 " \
         "    order by i_listing_id " \
         "), t2 as (  " \
@@ -72,6 +73,7 @@ def get_listings(place_id):
         "        join calendar c on t1.i_listing_id = c.i_listing_id " \
         "    where t1.s_google_place_id = %s " \
         "        and c.b_available = FALSE " \
+        "        and c.dt_booking_date < now() " \
         "    group by 1 " \
         "    order by 1 " \
         "), t3 as ( " \
@@ -333,6 +335,7 @@ def get_avg_bookings_by_bedrooms(place_id):
         "    where l.s_google_place_id = %s " \
         "        and l.s_room_type = 'Entire home/apt' " \
         "        and l.d_star_rating > 3 " \
+        "        and c.dt_booking_date < now() " \
         "    group by 1, 2 " \
         "), t2 as ( " \
         "    select t1.i_bedrooms, t1.i_listing_id, t1.count_nights_total, t1.price_total,  " \
@@ -342,6 +345,7 @@ def get_avg_bookings_by_bedrooms(place_id):
         "    from t1  " \
         "        join calendar c on t1.i_listing_id = c.i_listing_id " \
         "    where c.b_available = False " \
+        "        and c.dt_booking_date < now() " \
         "    group by 1, 2, 3, 4 " \
         ") " \
         "select i_bedrooms, count(*) as count_homes,  " \
