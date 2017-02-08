@@ -197,11 +197,17 @@ def get_a_message_and_process_it():
             
             calendar = utils_api.get_place_search(session_id, m['url']['StringValue'])
 
-            utils_db.save_calendar_detail(session_id, listing_id, calendar['calendar_months'])
+            #pdb.set_trace()
 
-            utils_sqs.delete_sqs_place_message(message)
+            #if error_type != "no_access"
+            if calendar.get('error_type', 'no error') == 'no error':
+                utils_db.save_calendar_detail(session_id, listing_id, calendar['calendar_months'])
+                output = 'Processed a calendar request for listing id %s' % listing_id
+            else:
+                utils.log(session_id, 'get_a_message_and_process_it', 'error %s: %s' % (calendar['error_type'], calendar['error_message']), m['url']['StringValue'])
+                output = 'No permission to access calendar for listing id %s' % listing_id
 
-            output = 'Processed a calendar request for listing id %s' % listing_id
+            utils_sqs.delete_sqs_place_message(message)            
 
         else:
             utils.log(session_id, 'get_a_message_and_process_it', 'Unknown value for message.message_attributes[type][StringValue]')
