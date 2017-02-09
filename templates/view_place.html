@@ -5,6 +5,16 @@
         height: 500px;
         width: 100%;
     }
+    #for_sale_listings_container {
+        height: 500px;
+        overflow-y: scroll;
+        padding: 0;
+    }
+    
+    .table > tbody > tr > td {
+        vertical-align: middle;
+    }
+    
     .w180 { width: 180px; }
     table.td-right td { text-align: right; }
     .smallme tbody tr th { padding: 2px; }
@@ -25,7 +35,20 @@
 
     <br />
 
-    <div id="map"></div>
+    <div class="row">
+        <div class="col-md-9"><div id="map"></div></div>
+        <div class="col-md-3" id="for_sale_listings_container">
+            <table id="for_sale_listings" class="table table-striped table-condensed">
+            <tr>
+                <th>&nbsp;</th>
+                <th>Bed/Bath</th>
+                <th>Price</th>
+                <th>Cap</th>
+            </tr>
+            </table>
+        </div>
+    </div>
+    
 
     <div id="avg_by_num_bedrooms_div"></div>
 
@@ -107,8 +130,8 @@
                 <th align="center">80th%</th>
                 <th align="center"># For Sale</th>
                 <th align="center">Avg Cost of Ownership</th>
-                <th align="center">Diff</th>
-                <th align="center">Diff %</th>
+                <th align="center">Cap rate</th>
+                <th align="center">ROI</th>
             </tr>
             {% for (var i=0; i < o.length; i++) { %}
                 <tr id="bedroms_{{ row.i_bedrooms }}">
@@ -127,20 +150,27 @@
                         {% } %}
                     </td>
                     {% if (o[i].avg_bookings && o[i].avg_cost) { 
-                        var diff = o[i].eighty_pct - o[i].avg_cost;
-                        var diff_pct = Math.round(((o[i].eighty_pct / o[i].avg_cost) - 1) * 100);
+
+                        down_payment = calculateDownPayment(o[i].avg_price);
+                        yearly_net_80 = (o[i].eighty_pct - o[i].avg_cost) * 12;
+                        closing_costs = calculateClosingCosts(o[i].avg_price);
+                        yearly_roi_80 = calculateROI(yearly_net_80, down_payment, closing_costs);
+                        
+                        cap_rate_80 = calculateCapRate(o[i].avg_price, o[i].eighty_pct, o[i].avg_cost, o[i].avg_mortgage);
+
                         var td_class = "";
-                        if (diff > 0) {
+                        if (cap_rate_80 > 10) {
                             td_class = "success";
                         }
-                        else if (diff < 0) {
+                        else if (cap_rate_80 < 10) {
                             td_class = "danger"; 
                         }  %}
-                        <td align="center" class="{%= td_class %}">${%= diff %}</td>
-                        <td align="center" class="{%= td_class %}"><small>{%= diff_pct %}%</small></td>
+                        <td align="center" class="{%= td_class %}">{%= displayNumber(cap_rate_80, 1, '%') %}</td>
+                        <td align="center" class="{%= td_class %}">{%= displayNumber(yearly_roi_80, 0, '%') %}</td>
                     {% }
                        else { %}
-                        <td></td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
                     {% } %}
 
                     
@@ -149,6 +179,16 @@
             </table>
 
 
+    </script>
+
+
+    <script type="text/x-tmpl" id="for_sale_houses_tmpl">
+        <tr id="{%= o.id %}" onclick="google.maps.event.trigger(forSaleMarkers[{%= o.id %}], 'click');" onmouseover="javascript:forSaleMarkers[{%= o.id %}].setAnimation(google.maps.Animation.BOUNCE);" onmouseout="javascript:forSaleMarkers[{%= o.id %}].setAnimation(null);;">
+            <td><img src="https://thumbs.trulia-cdn.com{%= o.photo_url %}" width="50" /></td>
+            <td>{%= o.bedrooms + '/' + o.bathrooms %}</td>
+            <td>{%= o.short_price %}</td>
+            <td>{%= displayNumber(o.cap_rate_80, 1, '%') %}</td>
+        </tr>
     </script>
     {% endraw %}
 
@@ -445,6 +485,10 @@
 
     function getForSale(ne_lat, ne_lng, sw_lat, sw_lng) {
 
+        //empty the scroller
+        $('#for_sale_listings').find("tr:gt(0)").remove();
+
+        //get some for sale listings in this area
         $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(results) {
     
             if (results.success != false) {
@@ -487,7 +531,10 @@
                             bedrooms: card.beds,
                             bathrooms: card.baths,
                             price: card.price,
-                            sqft: card.sqft
+                            short_price: card.shortPrice,
+                            sqft: card.sqft,
+                            photo_url: card.photoUrl,
+                            id: i
                         });
 
                         house_analysis = singleHouseAnalysis(marker);
@@ -495,6 +542,7 @@
                         avg_bookings_80 = this_bookings.eighty_pct;
 
                         marker.label.text = card.shortPrice + '(' + displayNumber(house_analysis.cap_rate_80, 2, "%") + ')';
+                        marker.cap_rate_80 = house_analysis.cap_rate_80;
 
                         marker.note = '<div>' +
                                         '<table width="100%"><tr>' +
@@ -528,16 +576,27 @@
                             singleHouseAnalysis(this, true);
                         });
 
+                        //populate the scroller with this house info
+                        $('#for_sale_listings tr:last').after(
+                            tmpl("for_sale_houses_tmpl", marker)
+                        );
+
+                        /*
+                        $('#for_sale_listings tr#' + house_analysis.id).on('click', function() {
+                            console.log('house_analysis.id: ' + house_analysis.id);
+                            google.maps.event.trigger(marker, 'click');
+                        });
+                        */
                     }
 
                 }
+
             }
             else {
                 console.log('results.page.cards is undefined. Here is results:\n' + JSON.stringify(results) + '\n');
 
+                $('#for_sale_listings tr:last').after("<tr><td colspan='3'>No results returned</td></tr>");
             }
-
-            //markerCluster = new MarkerClusterer(map, forSaleMarkers, {imagePath: '/static/images/m'});
 
             updateAvgCostAnalysis();
             
@@ -605,45 +664,57 @@
         //loop through 1-5 bedroom houses and update total num houses and total cost
         for (i = 0; i <= 5; i++) {
             
+            //grab all the x bedroom houses and put into array
             var result = $.grep(forSaleMarkers, function(item){
                 return item.bedrooms == i + 'bd';
             });
 
+            //loop through all houses with x number bedrooms
             if (result.length > 0) {
+
+                //if we haven't started the dictionary for houses with this many bedrooms yet, then start it now
                 var exists = arr[i];
                 if (!exists)
-                    arr[i] = {"count_for_sale": 0, "total_cost": 0, "avg_cost": 0, "mortgage_cost": 0};
+                    arr[i] = {"count_for_sale": 0, "total_op_ex": 0, "total_price": 0, "avg_price": 0, "avg_cost": 0, "avg_mortgage": 0};
 
+                //read dictionary into var for simple reference
                 thisListing = arr[i];
 
+                //loop through all houses with this many bedrooms and update the dictionary
                 for (j = 0; j < result.length; j++) {
 
+                    //only try to calculate the results if this is a number
                     if ($.isNumeric(result[j].price.replace(/[^0-9\.]+/g,""))) {
                         thisListing.count_for_sale += 1;
-                        //var price = cleanNumber(result[j].price);
+
                         var all_costs = singleHouseAnalysis(result[j], false);
-                        thisListing.total_cost += all_costs.op_ex_per_month;
+                        thisListing.total_price += all_costs.price;
+                        thisListing.total_op_ex += all_costs.op_ex_per_month;
                     }
                 }
 
-                //get mortgage cost
-                if (thisListing.total_cost > 0) {
-                    thisListing.avg_cost = Math.round(thisListing.total_cost / thisListing.count_for_sale);
-                    //commented 20170203 b/c we are calculating total ownership costs now instead of just mortgage costs
-                    //thisListing.mortgage_cost = calculateMortgage(thisListing.avg_cost);
+                //get average cost of ownership and mortgage
+                if (thisListing.total_op_ex > 0 && thisListing.count_for_sale > 0) {
+                    thisListing.avg_cost = Math.round(thisListing.total_op_ex / thisListing.count_for_sale);
+                    thisListing.avg_price = Math.round(thisListing.total_price / thisListing.count_for_sale);
+                    thisListing.avg_mortgage = calculateMortgage((thisListing.total_price / thisListing.count_for_sale));
                 }
 
                 var exists = avg_bookings_by_bedrooms[i];
                 if (!exists)
-                    avg_bookings_by_bedrooms[i] = {"avg_bookings": 0, 
+                    avg_bookings_by_bedrooms[i] = { "avg_price": 0,
+                                                    "avg_bookings": 0, 
                                                     "count_homes": 0, 
                                                     "i_bedrooms": i, 
                                                     "count_for_sale": 0,
-                                                    "avg_cost": 0
+                                                    "avg_cost": 0,
+                                                    "avg_mortgage": 0,
                                                 }
 
+                avg_bookings_by_bedrooms[i].avg_price = thisListing.avg_price;
                 avg_bookings_by_bedrooms[i].count_for_sale = thisListing.count_for_sale;
                 avg_bookings_by_bedrooms[i].avg_cost = thisListing.avg_cost;
+                avg_bookings_by_bedrooms[i].avg_mortgage = thisListing.avg_mortgage;
                     
             }
             
@@ -661,9 +732,11 @@
     }
 
     function singleHouseAnalysis(marker, display_it) {
+        id = marker.id;
         address = marker.address;
         bedrooms = cleanNumber(marker.bedrooms);
         bathrooms = cleanNumber(marker.bathrooms);
+        photo_url = marker.photo_url;
         sq_ft = cleanNumber(marker.sqft);
         price = cleanNumber(marker.price);
         down_payment = calculateDownPayment(price);
@@ -697,9 +770,11 @@
 
 
         house_object = { 
+            "id": id,
             "address": address,
             "bedrooms": bedrooms,
             "bathrooms": bathrooms,
+            "photo_url": photo_url,
             "sq_ft": sq_ft,
             "price": price,
             "down_payment": down_payment,
