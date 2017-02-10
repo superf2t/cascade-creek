@@ -111,7 +111,7 @@ def build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng):
             "limit":30,
             "sort": {
                 "type":"best",
-                "ascending":True
+                "ascending":"true"
             },
             "offset":0,
             "zoom":13
