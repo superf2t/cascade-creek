@@ -184,11 +184,14 @@
 
 
     <script type="text/x-tmpl" id="for_sale_houses_tmpl">
-        <tr id="{%= o.id %}" onclick="google.maps.event.trigger(forSaleMarkers[{%= o.id %}], 'click');" onmouseover="javascript:forSaleMarkers[{%= o.id %}].setAnimation(google.maps.Animation.BOUNCE);" onmouseout="javascript:forSaleMarkers[{%= o.id %}].setAnimation(-1);;">
-            <td><img src="https://thumbs.trulia-cdn.com{%= o.photo_url %}" width="50" /></td>
-            <td>{%= o.bedrooms + '/' + o.bathrooms %}</td>
-            <td>{%= o.short_price %}</td>
-            <td>{%= displayNumber(o.cap_rate_80, 1, '%') %}</td>
+        <tr id="{%= o.id %}" data-cap="{%= displayNumber(o.cap_rate_80, 1) %}" 
+            onclick="google.maps.event.trigger(forSaleMarkers[{%= o.id %}], 'click');" 
+            onmouseover="javascript:forSaleMarkers[{%= o.id %}].setAnimation(google.maps.Animation.BOUNCE);" 
+            onmouseout="javascript:forSaleMarkers[{%= o.id %}].setAnimation(-1);;">
+                <td><img src="https://thumbs.trulia-cdn.com{%= o.photo_url %}" width="50" /></td>
+                <td>{%= o.bedrooms + '/' + o.bathrooms %}</td>
+                <td>{%= o.short_price %}</td>
+                <td>{%= displayNumber(o.cap_rate_80, 1, '%') %}</td>
         </tr>
     </script>
     {% endraw %}
@@ -505,7 +508,7 @@
     
             if (results.success != false) {
                 //loop and put markers on screen
-                for (i = 0; i < results.page.cards.length; i++) {
+                for (var i = 0; i < results.page.cards.length; i++) {
                     
                     card = results.page.cards[i];
 
@@ -589,16 +592,14 @@
                         });
 
                         //populate the scroller with this house info
+                        /*
                         $('#for_sale_listings tr:last').after(
                             tmpl("for_sale_houses_tmpl", marker)
                         );
-
-                        /*
-                        $('#for_sale_listings tr#' + house_analysis.id).on('click', function() {
-                            console.log('house_analysis.id: ' + house_analysis.id);
-                            google.maps.event.trigger(marker, 'click');
-                        });
                         */
+                        populateScroller(marker);
+
+
                     }
 
                 }
@@ -613,6 +614,46 @@
             updateAvgCostAnalysis();
             
         });
+    }
+
+    //populate the scroller in order by cap rate desc
+    function populateScroller(marker) {
+        //$('#for_sale_listings')
+        //tmpl("for_sale_houses_tmpl", marker)
+        cap_rate = marker.cap_rate_80;
+
+        //get data attribute values of existing tr's and read into array
+        var dataList = $("#for_sale_listings tr[data-cap]").map(function() {
+            return $(this).data("cap");
+        }).get();
+
+        //if no rows are added yet, add it
+        if (dataList.length == 0) {
+            $('#for_sale_listings tr:last').after(
+                tmpl("for_sale_houses_tmpl", marker)
+            );
+        }
+        else {
+            //loop through, find the first one this is smaller than, and insert
+            for (var i = 0; i < dataList.length; i++) {
+                if (cap_rate > dataList[i]) {
+                    $('#for_sale_listings tr[data-cap="' + dataList[i] + '"').before(
+                        tmpl("for_sale_houses_tmpl", marker)
+                    );
+                    i = 999;
+                }
+            }
+            //if this is the smallest of the bunch, put it at the end
+            if (i < 999) {
+                $('#for_sale_listings tr:last').after(
+                    tmpl("for_sale_houses_tmpl", marker)
+                );       
+            }
+
+
+        }
+        
+
     }
 
     /* handle monthly costs form submit */
