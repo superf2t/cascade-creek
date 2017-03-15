@@ -295,30 +295,23 @@ def save_listings(place_id, session_id, listings):
 
     time_start = time.time()
 
+    # for each property on this page, insert into the database
+    # if it already exists this will upsert the new information
+    # it will also queue up the listing detail and listing calendar
     i = 0
     for listing in listings:
         listing_id = listing['listing']['id']
 
-        _l = utils_db.get_listing(listing_id)
-        
-        # no listing is returned, this is a new one, so insert
-        if len(_l) == 0:
-            # insert
-            utils.log(session_id, 'save_listings', 'Upserting new listing id %s' % listing_id)
-            utils_db.upsert_listing(place_id, session_id, listing)
+        # insert
+        utils.log(session_id, 'save_listings', 'Upserting new listing id %s' % listing_id)
+        utils_db.upsert_listing(place_id, session_id, listing)
 
-            # queue a listing detail search
-            utils_sqs.insert_sqs_listing_detail_page(session_id, listing_id)
-            utils_sqs.insert_sqs_listing_calendar(session_id, listing_id)
+        # queue a listing detail search
+        utils_sqs.insert_sqs_listing_detail_page(session_id, listing_id)
+        utils_sqs.insert_sqs_listing_calendar(session_id, listing_id)
 
-            i += 1
-
-        # if a listing is returned...
-        else:
-            # already inserted this listing in this session
-            utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id))
-
-        
+        i += 1
+     
 
     #log
     elapsed_time = time.time() - time_start
