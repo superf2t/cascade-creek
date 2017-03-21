@@ -187,7 +187,7 @@ def get_a_message_and_process_it():
                 output = 'Listing details saved/updated, listing_id: %s' % listing['listing']['id']
             else:
                 utils.log(session_id, 'get_a_message_and_process_it', 'error %s: %s' % (listing['error_type'], listing['error_message']), m['url']['StringValue'])
-                output = 'No permission to access calendar for listing id %s' % listing_id
+                output = 'No permission to access listing detail for %s' % m['url']['StringValue']
 
             utils_sqs.delete_sqs_place_message(message)
             
