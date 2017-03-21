@@ -142,7 +142,7 @@ def get_places_history():
 
 
     response = utils.pg_sql("select p.s_google_place_id as place_id, p.s_name, p.dt_insert, " \
-                            "    max(c.dt_booking_date) as max_booking_date, , count(distinct l.i_listing_id) as count_listings " \
+                            "    max(c.dt_booking_date) as max_booking_date, count(distinct l.i_listing_id) as count_listings " \
                             "from place p " \
                             "    join listing l on p.s_google_place_id = l.s_google_place_id " \
                             "    join calendar c on l.i_listing_id = c.i_listing_id " \
