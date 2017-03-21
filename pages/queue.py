@@ -182,11 +182,15 @@ def get_a_message_and_process_it():
             utils.log(session_id, 'get_a_message_and_process_it', 'listing detail, preparing to save listing detail', m['url']['StringValue'])
 
             listing = utils_api.get_place_search(session_id, m['url']['StringValue'])
-            utils_db.save_listing_detail(session_id, listing)
+            if listing.get('error_type', 'no error') == 'no error':
+                utils_db.save_listing_detail(session_id, listing)
+                output = 'Listing details saved/updated, listing_id: %s' % listing['listing']['id']
+            else:
+                utils.log(session_id, 'get_a_message_and_process_it', 'error %s: %s' % (listing['error_type'], listing['error_message']), m['url']['StringValue'])
+                output = 'No permission to access calendar for listing id %s' % listing_id
 
             utils_sqs.delete_sqs_place_message(message)
-
-            output = 'Listing details saved/updated, listing_id: %s' % listing['listing']['id']
+            
 
 
         # if this is a calendar request
