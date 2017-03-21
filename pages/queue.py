@@ -25,7 +25,7 @@ login_manager = flask_login.LoginManager()
 @queue.route("/process_place_queue")
 @flask_login.login_required
 def process_place_queue_page():
-    utils.log(None, 'process_place_queue_page', 'page load')
+    utils.log('process_place_queue_page', 'page load')
     #try checking to see if we're at home
     check_yo_self = am_i_at_home()
     return render_template("process_place_queue.html", check_yo_self=check_yo_self)
@@ -33,23 +33,23 @@ def process_place_queue_page():
 @queue.route("/queue_all_calendar")
 @flask_login.login_required
 def queue_all_calendar_page():
-    utils.log(None, 'queue_all_calendar_page', None)
-    sessions = utils_db.get_sessions()
-    sessions_count = len(sessions)
+    utils.log('queue_all_calendar_page', None)
+    places = utils_db.get_places_history()
+    places_count = len(places)
 
     queued = False
     queued_count = 0
-    if request.args.get('session_id'):
-        queued = request.args.get('session_id')
+    if request.args.get('place_id'):
+        queued = request.args.get('place_id')
         queued_count = request.args.get('count')
 
-    return render_template("queue_all_calendar.html", sessions=sessions, count=sessions_count, queued=queued, queued_count=queued_count)
+    return render_template("queue_all_calendar.html", places=places, count=places_count, queued=queued, queued_count=queued_count)
 
-@queue.route("/queue_all_calendar/<session_id>")
+@queue.route("/queue_all_calendar/<place_id>")
 @flask_login.login_required
-def queue_all_calendar_id_page(session_id):
-    count = utils_db.queue_calendar_sqs_for_session(session_id)
-    return redirect("/queue/queue_all_calendar?session_id=%s&count=%s" % (session_id, count))
+def queue_all_calendar_for_place_id_page(place_id):
+    count = utils_db.queue_calendar_sqs_for_place(place_id)
+    return redirect("/queue/queue_all_calendar?place_id=%s&count=%s" % (place_id, count))
 
 
 ##################
@@ -59,7 +59,7 @@ def queue_all_calendar_id_page(session_id):
 @queue.route("/_process_place_queue")
 @flask_login.login_required
 def process_place_queue_api():
-    utils.log(None, 'process_place_queue_api', 'Preparing to process queue')
+    utils.log('process_place_queue_api', 'Preparing to process queue')
     output = get_a_message_and_process_it()        
 
     return jsonify(output)
@@ -97,18 +97,17 @@ def get_a_message_and_process_it():
     #     save/update the availability
 
     if message == '':
-        utils.log(None, 'get_a_message_and_process_it', 'No messages found in queue')
+        utils.log('get_a_message_and_process_it', 'No messages found in queue')
 
         output = "No messages found in queue, exiting"
 
     else:
         m = message.message_attributes
-        session_id = m['session_id']['StringValue']
         m_type = m['type']['StringValue']
 
         
         if m_type == 'place':
-            utils.log(session_id, 'get_a_message_and_process_it', 'm_type == place')
+            utils.log('get_a_message_and_process_it', 'm_type == place')
 
             place = Place(m['place_id']['StringValue'], m['name']['StringValue'], 0.0, 0.0, 
                           m['ne_lat']['StringValue'], m['ne_lng']['StringValue'],
@@ -116,32 +115,32 @@ def get_a_message_and_process_it():
 
         
             # get results
-            results = utils_api.get_place_search(session_id, place.search_url)
+            results = utils_api.get_place_search(place.search_url)
 
             #are there more than 300 listings?
             # yes = break into 4 quadrants, queue each
             if results['results_json']['metadata']['listings_count'] >= 300:
-                utils.log(session_id, 'get_a_message_and_process_it', 'place, >300 results for %s' % m['name']['StringValue'])
+                utils.log('get_a_message_and_process_it', 'place, >300 results for %s' % m['name']['StringValue'])
 
-                insert_four_new_place_quadrants(session_id, place)
+                insert_four_new_place_quadrants(place)
                 utils_sqs.delete_sqs_place_message(message)
                 output = "More than 300 results for place '%s'. Queued 4 new searches." % m['name']['StringValue']
 
 
             # no = queue listing pages
             elif results['results_json']['metadata']['listings_count'] < 300:
-                utils.log(session_id, 'get_a_message_and_process_it', 'place, <300 results for %s' % m['name']['StringValue'])
+                utils.log('get_a_message_and_process_it', 'place, <300 results for %s' % m['name']['StringValue'])
 
                 listings_count = results['results_json']['metadata']['listings_count']
 
-                pages_inserted = insert_sqs_listing_overview_pages(session_id, listings_count, place)
+                pages_inserted = insert_sqs_listing_overview_pages(listings_count, place)
 
                 utils_sqs.delete_sqs_place_message(message)
 
                 output = "less than 300, inserted %s pages into queue" % pages_inserted
 
             else:
-                utils.log(session_id, 'get_a_message_and_process_it', 'Unknown value for results[results_json][metadata][listings_count]')
+                utils.log('get_a_message_and_process_it', 'Unknown value for results[results_json][metadata][listings_count]')
 
                 output = "Unknown value for results[results_json][metadata][listings_count]"
 
@@ -154,39 +153,39 @@ def get_a_message_and_process_it():
                           m['ne_lat']['StringValue'], m['ne_lng']['StringValue'],
                           m['sw_lat']['StringValue'], m['sw_lng']['StringValue'])
 
-            utils.log(session_id, 'get_a_message_and_process_it', 'listing overview, preparing to save listings')
+            utils.log('get_a_message_and_process_it', 'listing overview, preparing to save listings')
 
             time_start = time.time()
 
             # get results
-            results = utils_api.get_place_search(session_id, place.search_url)
+            results = utils_api.get_place_search(place.search_url)
 
             search_results = results['results_json']['search_results']
 
             # loop through results and save to db
             # the sqs message to get detail and calendar is also performed in here
-            listings_count = save_listings(place.place_id, session_id, search_results)
+            listings_count = save_listings(place.place_id, search_results)
 
             # delete this listing overview sqs
             utils_sqs.delete_sqs_place_message(message)
 
             #log
             time_end = time.time()
-            utils.log(session_id, 'get_a_message_and_process_it', 'listing overview, saved %s listings' % listings_count, None, time_end - time_start)
+            utils.log('get_a_message_and_process_it', 'listing overview, saved %s listings' % listings_count, None, time_end - time_start)
 
             output = 'Listing overview, saved %s places, queued individual listing pull' % listings_count
 
         # if this is a listing
         #   tbd
         elif m_type == 'listing detail':
-            utils.log(session_id, 'get_a_message_and_process_it', 'listing detail, preparing to save listing detail', m['url']['StringValue'])
+            utils.log('get_a_message_and_process_it', 'listing detail, preparing to save listing detail', m['url']['StringValue'])
 
-            listing = utils_api.get_place_search(session_id, m['url']['StringValue'])
+            listing = utils_api.get_place_search(m['url']['StringValue'])
             if listing.get('error_type', 'no error') == 'no error':
-                utils_db.save_listing_detail(session_id, listing)
+                utils_db.save_listing_detail(listing)
                 output = 'Listing details saved/updated, listing_id: %s' % listing['listing']['id']
             else:
-                utils.log(session_id, 'get_a_message_and_process_it', 'error %s: %s' % (listing['error_type'], listing['error_message']), m['url']['StringValue'])
+                utils.log('get_a_message_and_process_it', 'error %s: %s' % (listing['error_type'], listing['error_message']), m['url']['StringValue'])
                 output = 'No permission to access listing detail for %s' % m['url']['StringValue']
 
             utils_sqs.delete_sqs_place_message(message)
@@ -197,24 +196,24 @@ def get_a_message_and_process_it():
         #   tbd
         elif m_type == 'calendar':
             listing_id = m['listing_id']['StringValue']
-            utils.log(session_id, 'get_a_message_and_process_it', 'calendar, preparing to save calendar detail', m['url']['StringValue'])
+            utils.log('get_a_message_and_process_it', 'calendar, preparing to save calendar detail', m['url']['StringValue'])
             
-            calendar = utils_api.get_place_search(session_id, m['url']['StringValue'])
+            calendar = utils_api.get_place_search(m['url']['StringValue'])
 
             #pdb.set_trace()
 
             #if error_type != "no_access"
             if calendar.get('error_type', 'no error') == 'no error':
-                utils_db.save_calendar_detail(session_id, listing_id, calendar['calendar_months'])
+                utils_db.save_calendar_detail(listing_id, calendar['calendar_months'])
                 output = 'Processed a calendar request for listing id %s' % listing_id
             else:
-                utils.log(session_id, 'get_a_message_and_process_it', 'error %s: %s' % (calendar['error_type'], calendar['error_message']), m['url']['StringValue'])
+                utils.log('get_a_message_and_process_it', 'error %s: %s' % (calendar['error_type'], calendar['error_message']), m['url']['StringValue'])
                 output = 'No permission to access calendar for listing id %s' % listing_id
 
             utils_sqs.delete_sqs_place_message(message)            
 
         else:
-            utils.log(session_id, 'get_a_message_and_process_it', 'Unknown value for message.message_attributes[type][StringValue]')
+            utils.log('get_a_message_and_process_it', 'Unknown value for message.message_attributes[type][StringValue]')
 
             output = 'm_type == ??? not sure what kind of sqs message this was ???'
     
@@ -222,22 +221,22 @@ def get_a_message_and_process_it():
 
 
 #break a place up into 4 new quadrants, save each to the queue
-def insert_four_new_place_quadrants(session_id, place):
-    utils.log(session_id, 'insert_four_new_place_quadrants', 'Create 4 new quadrants, save to queue')
+def insert_four_new_place_quadrants(place):
+    utils.log('insert_four_new_place_quadrants', 'Create 4 new quadrants, save to queue')
 
     nw = build_place_quadrant(place, 'nw')
     ne = build_place_quadrant(place, 'ne')
     sw = build_place_quadrant(place, 'sw')
     se = build_place_quadrant(place, 'se')
 
-    utils_sqs.insert_sqs_place_message(session_id, nw)
-    utils_sqs.insert_sqs_place_message(session_id, ne)
-    utils_sqs.insert_sqs_place_message(session_id, sw)
-    utils_sqs.insert_sqs_place_message(session_id, se)
+    utils_sqs.insert_sqs_place_message(nw)
+    utils_sqs.insert_sqs_place_message(ne)
+    utils_sqs.insert_sqs_place_message(sw)
+    utils_sqs.insert_sqs_place_message(se)
 
 # create a new place which is a quadrant of a previous place
 def build_place_quadrant(place, quadrant):
-    utils.log(None, 'build_place_quadrant', 'create a new quadrant, q_%s' % quadrant)
+    utils.log('build_place_quadrant', 'create a new quadrant, q_%s' % quadrant)
 
     place_quadrant = Place(place.place_id, "%s | q_%s" % (place.name, quadrant))
 
@@ -273,17 +272,17 @@ def build_place_quadrant(place, quadrant):
     return place_quadrant
 
 # receive a place and insert as many listing overview pages as necessary
-def insert_sqs_listing_overview_pages(session_id, listings_count, place):
+def insert_sqs_listing_overview_pages(listings_count, place):
     
     # get how many pages of results there are in the place quadrant and insert sqs messages for each
     total_pages = math.ceil(listings_count / 18)
 
-    utils.log(session_id, 'insert_sqs_listing_overview_pages', 'insert %s listing overview pages' % total_pages)
+    utils.log('insert_sqs_listing_overview_pages', 'insert %s listing overview pages' % total_pages)
 
     
     this_page = 1
     while True:
-        utils_sqs.insert_sqs_listing_overview_message(session_id, place, this_page)
+        utils_sqs.insert_sqs_listing_overview_message(place, this_page)
         
         this_page += 1
         if this_page > total_pages:
@@ -294,8 +293,8 @@ def insert_sqs_listing_overview_pages(session_id, listings_count, place):
 
 
 # loop through json from /search and save all listings to db
-def save_listings(place_id, session_id, listings):
-    utils.log(session_id, 'save_listings', 'loop through and save listings')
+def save_listings(place_id, listings):
+    utils.log('save_listings', 'loop through and save listings')
 
     time_start = time.time()
 
@@ -308,25 +307,25 @@ def save_listings(place_id, session_id, listings):
         # no listing is returned, this is a new one, so insert
         if len(_l) == 0:
             # insert
-            utils.log(session_id, 'save_listings', 'Upserting new listing id %s' % listing_id)
-            utils_db.upsert_listing(place_id, session_id, listing)
+            utils.log('save_listings', 'Upserting new listing id %s' % listing_id)
+            utils_db.upsert_listing(place_id, listing)
 
             # queue a listing detail search
-            utils_sqs.insert_sqs_listing_detail_page(session_id, listing_id)
-            utils_sqs.insert_sqs_listing_calendar(session_id, listing_id)
+            utils_sqs.insert_sqs_listing_detail_page(listing_id)
+            utils_sqs.insert_sqs_listing_calendar(listing_id)
 
             i += 1
 
         # if a listing is returned...
         else:
-            # already inserted this listing in this session
-            utils.log(session_id, 'save_listings', 'Listing id %s exists for session %s. Moving on' % (listing_id, session_id))
+            # already inserted this listing
+            utils.log('save_listings', 'Listing id %s exists. Moving on' % listing_id)
 
         
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'save_listings', 'Inserted %s items into Listing table' % i, None, elapsed_time)
+    utils.log('save_listings', 'Inserted %s items into Listing table' % i, None, elapsed_time)
 
     return i
 

@@ -7,42 +7,38 @@ import datetime
 # SQS FUNCTIONS #
 #################
 
-def insert_sqs_listing_overview_message(session_id, place, page):
+def insert_sqs_listing_overview_message(place, page):
     time_start = time.time()
 
     sqs = get_sqs_place_queue()
 
-    message_body = "listing overview page %s, session %s, %s" % (page, session_id, place.name)
-    message_attributes = build_sqs_place_attributes(session_id, place, 'listing overview', page)
+    message_body = "listing overview page %s, %s" % (page, place.name)
+    message_attributes = build_sqs_place_attributes(place, 'listing overview', page)
     sqs.send_message(MessageBody=message_body, MessageAttributes=message_attributes)
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'insert_sqs_listing_overview_message', 'Sent an sqs for %s, listing overview page %s' % (place.name, page))
+    utils.log('insert_sqs_listing_overview_message', 'Sent an sqs for %s, listing overview page %s' % (place.name, page))
 
     return True
 
 
 def get_sqs_place_queue():
-    utils.log(None, 'get_sqs_place_queue', None)
+    utils.log('get_sqs_place_queue', None)
     return vars.sqs.Queue(url=vars.sqs_place)
 
 
 # insert sqs for listing detail pages
-def insert_sqs_listing_detail_page(session_id, listing_id):
+def insert_sqs_listing_detail_page(listing_id):
 
     sqs = get_sqs_place_queue()
 
     listing_url = 'https://www.airbnb.com/api/v2/listings/%s?key=%s&_format=v1_legacy_for_p3' % (listing_id, vars.airbnb_key)
 
-    message_body = "listing detail, session %s, listing id %s" % (session_id, listing_id)
+    message_body = "listing id %s" % listing_id
     message_attributes = {
         'type': {
             'StringValue': 'listing detail',
-            'DataType': 'String'
-        },
-        'session_id': {
-            'StringValue': str(session_id),
             'DataType': 'String'
         },
         'listing_id': {
@@ -55,13 +51,13 @@ def insert_sqs_listing_detail_page(session_id, listing_id):
         }
     }
 
-    utils.log(session_id, 'insert_sqs_listing_detail_pages', 'Inserting listing detail sqs for listing_id %s' % listing_id, listing_url)
+    utils.log('insert_sqs_listing_detail_pages', 'Inserting listing detail sqs for listing_id %s' % listing_id, listing_url)
     sqs.send_message(MessageBody=message_body, MessageAttributes=message_attributes)
 
     return True
 
 # insert an sqs item to grab calendar information
-def insert_sqs_listing_calendar(session_id, listing_id):
+def insert_sqs_listing_calendar(listing_id):
 
     sqs = get_sqs_place_queue()
     
@@ -71,14 +67,10 @@ def insert_sqs_listing_calendar(session_id, listing_id):
     
     listing_url = 'https://www.airbnb.com/api/v2/calendar_months?key=%s&currency=USD&locale=en&listing_id=%s&month=%s&year=%s&count=3&_format=with_conditions' % (vars.airbnb_key, listing_id, _month, _year)
 
-    message_body = "calendar, session %s, listing id %s" % (session_id, listing_id)
+    message_body = "calendar, listing id %s" % listing_id
     message_attributes = {
         'type': {
             'StringValue': 'calendar',
-            'DataType': 'String'
-        },
-        'session_id': {
-            'StringValue': str(session_id),
             'DataType': 'String'
         },
         'listing_id': {
@@ -91,37 +83,33 @@ def insert_sqs_listing_calendar(session_id, listing_id):
         }
     }
 
-    utils.log(session_id, 'insert_sqs_listing_calendar', 'Inserting calendar sqs for listing_id %s' % listing_id, listing_url)
+    utils.log('insert_sqs_listing_calendar', 'Inserting calendar sqs for listing_id %s' % listing_id, listing_url)
     sqs.send_message(MessageBody=message_body, MessageAttributes=message_attributes)
 
     return True
 
 
-def insert_sqs_place_message(session_id, place):
+def insert_sqs_place_message(place):
     time_start = time.time()
 
     sqs = get_sqs_place_queue()
 
-    message_body = "place session %s, %s" % (session_id, place.name)
-    message_attributes = build_sqs_place_attributes(session_id, place, 'place')
+    message_body = "place %s" % place.name
+    message_attributes = build_sqs_place_attributes(place, 'place')
     sqs.send_message(MessageBody=message_body, MessageAttributes=message_attributes)
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'insert_sqs_place_message', 'Inserted sqs for %s' % place.name, None, elapsed_time)
+    utils.log('insert_sqs_place_message', 'Inserted sqs for %s' % place.name, None, elapsed_time)
 
     return True
 
-def build_sqs_place_attributes(session_id, place, process_type, page=1):
-    utils.log(session_id, 'build_sqs_place_attributes', 'place attributes page %s' % page)
+def build_sqs_place_attributes(place, process_type, page=1):
+    utils.log('build_sqs_place_attributes', 'place attributes page %s' % page)
 
     message_attributes = {
         'type': {
             'StringValue': str(process_type),
-            'DataType': 'String'
-        },
-        'session_id': {
-            'StringValue': str(session_id),
             'DataType': 'String'
         },
         'place_id': {
@@ -164,17 +152,17 @@ def get_one_sqs_place_message():
     sqs = get_sqs_place_queue()
     messages = sqs.receive_messages(MaxNumberOfMessages=1, MessageAttributeNames=['All'])
     if len(messages) > 0:
-        utils.log(None, 'get_one_sqs_place_message', 'return type = %s' % messages[0].message_attributes['type']['StringValue'])
+        utils.log('get_one_sqs_place_message', 'return type = %s' % messages[0].message_attributes['type']['StringValue'])
         return messages[0]
     else:
-        utils.log(None, 'get_one_sqs_place_message', 'Nothing returned')
+        utils.log('get_one_sqs_place_message', 'Nothing returned')
         return ''
 
 
 def delete_sqs_place_message(message):
 
     m = message.message_attributes
-    utils.log(m['session_id']['StringValue'], 'delete_sqs_place_message', 'Preparing to delete an sqs message, %s' % message.body)
+    utils.log('delete_sqs_place_message', 'Preparing to delete an sqs message, %s' % message.body)
 
     message.delete()
 

@@ -33,10 +33,10 @@ def get_random_string(string_length):
     random = random.replace("-","") # Remove the UUID "-".
     return random[0:string_length].lower() # Return the random string.
 
-def log(session_id, function, action, url = None, elapsed_time = 0):
+def log(function, action, url = None, elapsed_time = 0):
 
-    sql = "insert into qbnb_log (s_session_id, d_elapsed_time, s_function, s_action, s_url, dt_insert) " \
-            "values (%s, %s, %s, %s, %s, %s)"
-    params = (session_id, elapsed_time, function, action, url, str(datetime.datetime.now()))
+    sql = "insert into qbnb_log (d_elapsed_time, s_function, s_action, s_url, dt_insert) " \
+            "values (%s, %s, %s, %s, %s)"
+    params = (elapsed_time, function, action, url, str(datetime.datetime.now()))
 
     pg_sql(sql, params)

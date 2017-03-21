@@ -2,24 +2,26 @@
 {% block body %}
 
         {% if queued != False %}
-            <div class="alert alert-info" role="alert">Queued {{ queued_count }} Calendar SQS messages for Session {{ queued }}</div>
+            <div class="alert alert-info" role="alert">Queued {{ queued_count }} Calendar SQS messages for Place {{ queued }}</div>
         {% endif %}
 
-        <h1>There are {{ count }} sessions in database</h1>
+        <h1>There are {{ count }} places in database</h1>
         <br />
 
         <div>
         <table class="table">
         <tr>
-            <th>Session Id</th>
+            <th>Place Id</th>
             <th>Place</th>
-            <th>Date</th>
+            <th>Created Date</th>
+            <th>Last Calendar Date</th>
         </tr>
-        {% for session in sessions %}
+        {% for place in places %}
             <tr>
-                <td><a href="/queue/queue_all_calendar/{{ session.s_session_id }}">{{ session.s_session_id }}</a></td>
-                <td>{{ session.s_name }}</td>
-                <td>{{ session.max_booking_date }}</td>
+                <td><a href="/queue/queue_all_calendar/{{ place.place_id }}">{{ place.place_id }}</a></td>
+                <td>{{ place.s_name }}</td>
+                <td>{{ place.dt_insert }}</td>
+                <td>{{ place.max_booking_date }}</td>
             </tr>
         {% endfor %}
         </table>

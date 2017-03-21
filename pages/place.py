@@ -24,13 +24,13 @@ login_manager = flask_login.LoginManager()
 @place.route("/add_place")
 @flask_login.login_required
 def add_place_page():
-    utils.log(None, 'add_place_page', 'page load')
+    utils.log('add_place_page', 'page load')
     return render_template("add_place.html")
 
 @place.route("/view_place/<place_id>")
 @flask_login.login_required
 def view_place_page(place_id):
-    utils.log(None, 'view_place_page(%s)' % place_id, None)
+    utils.log('view_place_page(%s)' % place_id, None)
     place = utils_db.get_place(place_id)
     avg_bookings_by_bedrooms = utils_db.get_avg_bookings_by_bedrooms(place_id)
     return render_template("view_place.html", place=place, avg_bookings_by_bedrooms=avg_bookings_by_bedrooms, google_api_key_js_map=vars.google_api_key_js_map, colors=vars.colors)
@@ -38,12 +38,11 @@ def view_place_page(place_id):
 @place.route("/view_place/<place_id>/queue")
 @flask_login.login_required
 def initiate_place_scrape_page(place_id):
-    utils.log(None, 'initiate_place_scrape_page(%s)' % place_id, 'page load')
+    utils.log('initiate_place_scrape_page(%s)' % place_id, 'page load')
     place = utils_db.get_place(place_id)
-    session_id = utils_db.get_session_id(place_id, place.name)
-    utils_sqs.insert_sqs_place_message(session_id, place)
+    utils_sqs.insert_sqs_place_message(place)
 
-    #redirect with session_id
+    #redirect
     return redirect("/queue/process_place_queue")
 
 
@@ -55,7 +54,7 @@ def initiate_place_scrape_page(place_id):
 @place.route("/_get_place/<place>")
 @flask_login.login_required
 def get_place_google_api(place):
-    utils.log(None, 'get_place_google_api', 'place_id = %s' % place)
+    utils.log('get_place_google_api', 'place_id = %s' % place)
 
     place = utils_api.get_google_place(place)
 
@@ -73,7 +72,7 @@ def get_place_google_api(place):
 @place.route("/_insert_place/", methods=["POST"])
 @flask_login.login_required
 def insert_place_api():
-    utils.log(None, 'insert_place_api', None)
+    utils.log('insert_place_api', None)
 
     str_place = request.form["hidden_place"]
     
@@ -86,7 +85,7 @@ def insert_place_api():
 @place.route("/_listings_geojson/<place_id>")
 @flask_login.login_required
 def get_listings_geojson_api(place_id):
-    utils.log(None, 'get_listings_geojson_api', 'Return GeoJSON for listings in place: %s' % place_id)
+    utils.log('get_listings_geojson_api', 'Return GeoJSON for listings in place: %s' % place_id)
     listings = utils_db.get_listings(place_id)
     return jsonify(listings)
 

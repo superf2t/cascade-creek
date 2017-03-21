@@ -27,7 +27,7 @@ login_manager.init_app(app)
 @app.route("/")
 @flask_login.login_required
 def hello_world_page():
-    utils.log(None, 'hello_world_page', 'page load')
+    utils.log('hello_world_page', 'page load')
     places = utils_db.get_places()
     return render_template("home.html", places=places, count=len(places), google_api_key_js_map=vars.google_api_key_js_map)
 
@@ -57,7 +57,7 @@ def logout():
 @app.route('/log')
 @flask_login.login_required
 def show_log_page(minutes=30):
-    utils.log(None, 'show_log_page', None)
+    utils.log('show_log_page', None)
 
     if request.args.get('minutes') == 'recent':
         minutes = 9999

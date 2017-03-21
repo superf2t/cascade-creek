@@ -23,7 +23,6 @@ body .container { width: 100%; }
         <div>
         <table class="table table-striped table-bordered">
         <tr>
-            <th>session_id</th>
             <th>insert_date</th>
             <th>function</th>
             <th>action</th>
@@ -32,7 +31,6 @@ body .container { width: 100%; }
         </tr>
         {% for log in logs %}
             <tr{% if log.s_function == "show_log_page" %} class="info"{% endif %}>
-                <td>{{ log.s_session_id }}</td>
                 <td nowrap>{{ log.dt_insert }}</td>
                 <td nowrap>{{ log.s_function }}</td>
                 <td nowrap>{{ log.s_action }}</td>

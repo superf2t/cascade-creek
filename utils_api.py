@@ -39,19 +39,19 @@ def get_google_place(place):
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(None, 'get_google_place', 'Getting place info from G', url, elapsed_time)
+    utils.log('get_google_place', 'Getting place info from G', url, elapsed_time)
     
     return place
 
 # call airbnb search page and return listings
-def get_place_search(session_id, place_search_url):    
+def get_place_search(place_search_url):    
     time_start = time.time()
 
     result = requests.get(place_search_url)
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(session_id, 'get_place_search', 'api call', place_search_url, elapsed_time)
+    utils.log('get_place_search', 'api call', place_search_url, elapsed_time)
 
     return result.json()
 
@@ -68,7 +68,7 @@ def get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng):
 
     #log
     elapsed_time = time.time() - time_start
-    utils.log(None, 'get_trulia_for_sale', 'Getting "for sale" listings from Trulia', url, elapsed_time)
+    utils.log('get_trulia_for_sale', 'Getting "for sale" listings from Trulia', url, elapsed_time)
     
     return trulia_result.content
 
