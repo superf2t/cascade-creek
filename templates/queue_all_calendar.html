@@ -13,6 +13,7 @@
         <tr>
             <th>Place Id</th>
             <th>Place</th>
+            <th>Listings</th>
             <th>Created Date</th>
             <th>Last Calendar Date</th>
         </tr>
@@ -20,6 +21,7 @@
             <tr>
                 <td><a href="/queue/queue_all_calendar/{{ place.place_id }}">{{ place.place_id }}</a></td>
                 <td>{{ place.s_name }}</td>
+                <td>{{ place.count_listings }}</td>
                 <td>{{ place.dt_insert }}</td>
                 <td>{{ place.max_booking_date }}</td>
             </tr>
