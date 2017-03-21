@@ -255,22 +255,6 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-sm-12"><h4>Revenue</h4></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1">Average Revenue:</div>
-                        <div class="col-sm-2 text-right">
-                            <span id="profit_loss_bookings_average"></span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1">80th% Revenue:</div>
-                        <div class="col-sm-2 text-right">
-                            <span id="profit_loss_bookings_eighty_percent"></span>
-                        </div>
-                    </div>
-
-                    <div class="row">
                         <div class="col-sm-12"><h4>Costs</h4></div>
                     </div>
                     <div class="row">
@@ -338,15 +322,27 @@
                         <div class="col-sm-12"><h4>Average Return</h4></div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1">Monthly net profit:</div>
+                        <div class="col-sm-6 col-sm-offset-1">Monthly Average Revenue:</div>
                         <div class="col-sm-2 text-right">
-                            <span id="profit_loss_monthly_net_average"></span>
+                            <span id="profit_loss_bookings_average"></span>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1 bottom-line">Annual net profit:</div>
+                        <div class="col-sm-6 col-sm-offset-1 bottom-line">Monthly Operating Expense:</div>
                         <div class="col-sm-2 text-right bottom-line">
-                            <span id="profit_loss_yearly_net_average"></span>
+                            <span id="profit_loss_op_ex_per_month_2"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Monthly Net Profit:</b></div>
+                        <div class="col-sm-2 text-right">
+                            <b><span id="profit_loss_monthly_net_average"></span></b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Annual net profit:</b></div>
+                        <div class="col-sm-2 text-right">
+                            <b><span id="profit_loss_yearly_net_average"></span></b>
                         </div>
                     </div>
                     <div class="row">
@@ -366,15 +362,27 @@
                         <div class="col-sm-12"><h4>80th Percentile Return</h4></div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1">Monthly net profit:</div>
+                        <div class="col-sm-6 col-sm-offset-1">80th% Revenue:</div>
                         <div class="col-sm-2 text-right">
-                            <span id="profit_loss_monthly_net_80"></span>
+                            <span id="profit_loss_bookings_eighty_percent"></span>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-6 col-sm-offset-1 bottom-line">Annual net profit:</div>
+                        <div class="col-sm-6 col-sm-offset-1 bottom-line">Monthly Operating Expense:</div>
                         <div class="col-sm-2 text-right bottom-line">
-                            <span id="profit_loss_yearly_net_80"></span>
+                            <span id="profit_loss_op_ex_per_month_3"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Monthly net profit:</b></div>
+                        <div class="col-sm-2 text-right">
+                            <b><span id="profit_loss_monthly_net_80"></span></b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-1"><b>Annual net profit:</b></div>
+                        <div class="col-sm-2 text-right">
+                            <b><span id="profit_loss_yearly_net_80"></span></b>
                         </div>
                     </div>
                     <div class="row">
@@ -884,6 +892,8 @@
         $('#profit_loss_repairs').text(displayNumber(house_object.repairs, 0, '$'));
         $('#profit_loss_management_fee').text(displayNumber(house_object.management_fee, 0, '$'));
         $('#profit_loss_op_ex_per_month').text(displayNumber(house_object.op_ex_per_month, 0, '$'));
+        $('#profit_loss_op_ex_per_month_2').text(displayNumber(house_object.op_ex_per_month*-1, 0, '$'));
+        $('#profit_loss_op_ex_per_month_3').text(displayNumber(house_object.op_ex_per_month*-1, 0, '$'));
         $('#profit_loss_op_ex_per_year').text(displayNumber(house_object.op_ex_per_year, 0, '$'));
         $('#profit_loss_monthly_net_average').text(displayNumber(house_object.monthly_net_average, 0, '$'));
         $('#profit_loss_yearly_net_average').text(displayNumber(house_object.yearly_net_average, 0, '$'));

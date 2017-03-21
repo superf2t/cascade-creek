@@ -13,17 +13,17 @@
         <tr>
             <th>Place Id</th>
             <th>Place</th>
-            <th align="right">Listings</th>
-            <th align="right">Created Date</th>
-            <th align="right">Last Calendar Date</th>
+            <th class="text-right">Listings</th>
+            <th class="text-right">Created Date</th>
+            <th class="text-right">Last Calendar Date</th>
         </tr>
         {% for place in places %}
             <tr>
                 <td><a href="/queue/queue_all_calendar/{{ place.place_id }}">{{ place.place_id }}</a></td>
                 <td>{{ place.s_name }}</td>
-                <td align="right">{{ place.count_listings }}</td>
-                <td align="right">{{ place.dt_insert }}</td>
-                <td align="right">{{ place.max_booking_date }}</td>
+                <td class="text-right">{{ place.count_listings }}</td>
+                <td class="text-right">{{ place.dt_insert }}</td>
+                <td class="text-right">{{ place.max_booking_date }}</td>
             </tr>
         {% endfor %}
         </table>
