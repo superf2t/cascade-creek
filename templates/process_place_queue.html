@@ -49,7 +49,7 @@
                     $('#results').append('<p>' + data + '</p>');
 
                     //is this data the same as the last data? (probably an error or no queue items left)
-                    if (data == last_data) {
+                    if (data == "No messages found in queue, exiting" && data == last_data) {
                         console.log('data == last_data, "' + data + '"');
                         same_results += 1;
                     }
