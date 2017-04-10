@@ -47,8 +47,15 @@ def get_listing(listing_id):
     return response
 
 # get all places from db, return an array of class Place
-def get_listings(place_id):
+def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
     utils.log('get_listings', 'get all listings in db for place_id: %s' % place_id)
+
+    # if lat/lng was not passed in, just make them very big values that will return all results
+    if ne_lat == 0 and ne_lng == 0:
+        ne_lat = 999
+        ne_lng = 999
+        sw_lat = -999
+        sw_lng = -999
 
     listings = []
     place_id
@@ -64,6 +71,8 @@ def get_listings(place_id):
         "        and l.d_star_rating >= 4.0 " \
         "        and l.d_rate < 1000 " \
         "        and c.dt_booking_date < now() " \
+        "        and CAST(s_lat AS NUMERIC) BETWEEN %s AND %s " \
+        "        and CAST(s_lng AS NUMERIC) BETWEEN %s AND %s " \
         "    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 " \
         "    order by i_listing_id " \
         "), t2 as (  " \
@@ -71,8 +80,7 @@ def get_listings(place_id):
         "        CAST(avg(c.i_price) as DECIMAL(6, 2)) as avg_nightly_price " \
         "    from t1 " \
         "        join calendar c on t1.i_listing_id = c.i_listing_id " \
-        "    where t1.s_google_place_id = %s " \
-        "        and c.b_available = FALSE " \
+        "    where c.b_available = FALSE " \
         "        and c.dt_booking_date < now() " \
         "    group by 1 " \
         "    order by 1 " \
@@ -92,7 +100,7 @@ def get_listings(place_id):
         "    join t2 on t1.i_listing_id = t2.i_listing_id " \
         "    join t3 on t2.i_listing_id = t3.i_listing_id " \
         "order by t2.total_bookings desc"
-    params = (place_id, place_id)
+    params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
 
     results = utils.pg_sql(sql, params)
 
@@ -309,7 +317,7 @@ def queue_calendar_sqs_for_place(place_id):
 
 
 # get the average bookings per month by number of bedrooms for a place
-def get_avg_bookings_by_bedrooms(place_id):
+def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
     utils.log('get_avg_bookings_by_bedrooms', 'Getting average bookings by bedroom for place_id %s' % place_id)
 
     sql = "WITH t1 as ( " \
@@ -320,6 +328,8 @@ def get_avg_bookings_by_bedrooms(place_id):
         "        and l.s_room_type = 'Entire home/apt' " \
         "        and l.d_star_rating > 3 " \
         "        and c.dt_booking_date < now() " \
+        "        and CAST(l.s_lat AS NUMERIC) BETWEEN %s AND %s " \
+        "        and CAST(l.s_lng AS NUMERIC) BETWEEN %s AND %s " \
         "    group by 1, 2 " \
         "), t2 as ( " \
         "    select t1.i_bedrooms, t1.i_listing_id, t1.count_nights_total, t1.price_total,  " \
@@ -338,7 +348,7 @@ def get_avg_bookings_by_bedrooms(place_id):
         "from t2 " \
         "group by 1 " \
         "order by 1"
-    params = (place_id, )
+    params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
     results = utils.pg_sql(sql, params)
 
     return results

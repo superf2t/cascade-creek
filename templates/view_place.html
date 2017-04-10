@@ -49,8 +49,89 @@
         </div>
     </div>
     
-
-    <div id="avg_by_num_bedrooms_div"></div>
+    <h3>Monthly Average by Num Bedrooms</h3>
+    <table class="table table-striped">
+    <tr>
+        <th align="center">Bedrooms</th>
+        <th align="center">Rental Houses</th>
+        <th align="center">Avg Monthly</th>
+        <th align="center">80th%</th>
+        <th align="center"># For Sale</th>
+        <th align="center">Avg Cost of Ownership</th>
+        <th align="center">Cap rate</th>
+        <th align="center">ROI</th>
+    </tr>
+    <tr id="bedrooms_0">
+        <td align="center" id="bedrooms_0_count_bedrooms">0</td>
+        <td align="center" id="bedrooms_0_count_homes">-</td>
+        <td align="center" id="bedrooms_0_avg_bookings">-</td>
+        <td align="center" id="bedrooms_0_eighty_pct">-</td>
+        <td align="center" id="bedrooms_0_count_for_sale">-</td>
+        <td align="center" id="bedrooms_0_avg_cost">-</td>
+        <td align="center" id="bedrooms_0_cap_rate">-</td>
+        <td align="center" id="bedrooms_0_yearly_roi">-</td>
+    </tr>
+    <tr id="bedrooms_1">
+        <td align="center" id="bedrooms_1_count_bedrooms">1</td>
+        <td align="center" id="bedrooms_1_count_homes">-</td>
+        <td align="center" id="bedrooms_1_avg_bookings">-</td>
+        <td align="center" id="bedrooms_1_eighty_pct">-</td>
+        <td align="center" id="bedrooms_1_count_for_sale">-</td>
+        <td align="center" id="bedrooms_1_avg_cost">-</td>
+        <td align="center" id="bedrooms_1_cap_rate">-</td>
+        <td align="center" id="bedrooms_1_yearly_roi">-</td>
+    </tr>
+    <tr id="bedrooms_2">
+        <td align="center" id="bedrooms_2_count_bedrooms">2</td>
+        <td align="center" id="bedrooms_2_count_homes">-</td>
+        <td align="center" id="bedrooms_2_avg_bookings">-</td>
+        <td align="center" id="bedrooms_2_eighty_pct">-</td>
+        <td align="center" id="bedrooms_2_count_for_sale">-</td>
+        <td align="center" id="bedrooms_2_avg_cost">-</td>
+        <td align="center" id="bedrooms_2_cap_rate">-</td>
+        <td align="center" id="bedrooms_2_yearly_roi">-</td>
+    </tr>
+    <tr id="bedrooms_3">
+        <td align="center" id="bedrooms_3_count_bedrooms">3</td>
+        <td align="center" id="bedrooms_3_count_homes">-</td>
+        <td align="center" id="bedrooms_3_avg_bookings">-</td>
+        <td align="center" id="bedrooms_3_eighty_pct">-</td>
+        <td align="center" id="bedrooms_3_count_for_sale">-</td>
+        <td align="center" id="bedrooms_3_avg_cost">-</td>
+        <td align="center" id="bedrooms_3_cap_rate">-</td>
+        <td align="center" id="bedrooms_3_yearly_roi">-</td>
+    </tr>
+    <tr id="bedrooms_4">
+        <td align="center" id="bedrooms_4_count_bedrooms">4</td>
+        <td align="center" id="bedrooms_4_count_homes">-</td>
+        <td align="center" id="bedrooms_4_avg_bookings">-</td>
+        <td align="center" id="bedrooms_4_eighty_pct">-</td>
+        <td align="center" id="bedrooms_4_count_for_sale">-</td>
+        <td align="center" id="bedrooms_4_avg_cost">-</td>
+        <td align="center" id="bedrooms_4_cap_rate">-</td>
+        <td align="center" id="bedrooms_4_yearly_roi">-</td>
+    </tr>
+    <tr id="bedrooms_5">
+        <td align="center" id="bedrooms_5_count_bedrooms">5</td>
+        <td align="center" id="bedrooms_5_count_homes">-</td>
+        <td align="center" id="bedrooms_5_avg_bookings">-</td>
+        <td align="center" id="bedrooms_5_eighty_pct">-</td>
+        <td align="center" id="bedrooms_5_count_for_sale">-</td>
+        <td align="center" id="bedrooms_5_avg_cost">-</td>
+        <td align="center" id="bedrooms_5_cap_rate">-</td>
+        <td align="center" id="bedrooms_5_yearly_roi">-</td>
+    </tr>
+    <tr id="bedrooms_6">
+        <td align="center" id="bedrooms_6_count_bedrooms">6</td>
+        <td align="center" id="bedrooms_6_count_homes">-</td>
+        <td align="center" id="bedrooms_6_avg_bookings">-</td>
+        <td align="center" id="bedrooms_6_eighty_pct">-</td>
+        <td align="center" id="bedrooms_6_count_for_sale">-</td>
+        <td align="center" id="bedrooms_6_avg_cost">-</td>
+        <td align="center" id="bedrooms_6_cap_rate">-</td>
+        <td align="center" id="bedrooms_6_yearly_roi">-</td>
+    </tr>
+    </table>
 
     <form>
     <h3>Monthly Ownership Costs</h3>
@@ -119,70 +200,6 @@
 
 
     {% raw %}
-    <script type="text/x-tmpl" id="avg_by_num_bedrooms_tmpl">
-
-            <h3>Monthly Average by Num Bedrooms</h3>
-            <table class="table table-striped">
-            <tr>
-                <th align="center">Bedrooms</th>
-                <th align="center">Rental Houses</th>
-                <th align="center">Avg Monthly</th>
-                <th align="center">80th%</th>
-                <th align="center"># For Sale</th>
-                <th align="center">Avg Cost of Ownership</th>
-                <th align="center">Cap rate</th>
-                <th align="center">ROI</th>
-            </tr>
-            {% for (var i=0; i < o.length; i++) { %}
-                <tr id="bedroms_{{ row.i_bedrooms }}">
-                    <td align="center" style="background-color: {%= getColor(o[i].i_bedrooms) %}">{%= o[i].i_bedrooms %}</td>
-                    <td align="center">{%= o[i].count_homes %}</td>
-                    <td align="center">${%= o[i].avg_bookings %}</td>
-                    <td align="center">${%= o[i].eighty_pct %}</td>
-                    <td align="center">
-                        {% if (o[i].count_for_sale) { %}
-                            {%= o[i].count_for_sale %}
-                        {% } %}
-                    </td>
-                    <td align="center">
-                        {% if (o[i].avg_cost) { %}
-                            ${%= o[i].avg_cost %}
-                        {% } %}
-                    </td>
-                    {% if (o[i].avg_bookings && o[i].avg_cost) { 
-
-                        down_payment = calculateDownPayment(o[i].avg_price);
-                        yearly_net_80 = (o[i].eighty_pct - o[i].avg_cost) * 12;
-                        closing_costs = calculateClosingCosts(o[i].avg_price);
-                        furnishing_costs = calculateFurnishingCosts(o[i].avg_price);
-                        yearly_roi_80 = calculateROI(yearly_net_80, down_payment, closing_costs, furnishing_costs);
-                        
-                        cap_rate_80 = calculateCapRate(o[i].avg_price, o[i].eighty_pct, o[i].avg_cost, o[i].avg_mortgage);
-
-                        var td_class = "";
-                        if (cap_rate_80 > 10) {
-                            td_class = "success";
-                        }
-                        else if (cap_rate_80 < 10) {
-                            td_class = "danger"; 
-                        }  %}
-                        <td align="center" class="{%= td_class %}">{%= displayNumber(cap_rate_80, 1, '%') %}</td>
-                        <td align="center" class="{%= td_class %}">{%= displayNumber(yearly_roi_80, 0, '%') %}</td>
-                    {% }
-                       else { %}
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
-                    {% } %}
-
-                    
-                </tr>
-            {% } %}
-            </table>
-
-
-    </script>
-
-
     <script type="text/x-tmpl" id="for_sale_houses_tmpl">
         <tr id="{%= o.id %}" data-cap="{%= displayNumber(o.cap_rate_80, 1) %}" 
             onclick="google.maps.event.trigger(forSaleMarkers[{%= o.id %}], 'click');" 
@@ -406,9 +423,9 @@
 
     <script>
     var map = null;
+    var avg_bookings_by_bedrooms = [];
+    var airbnbMarkers = [];
     var forSaleMarkers = [];
-
-    var avg_bookings_by_bedrooms = {{ avg_bookings_by_bedrooms|tojson }};
     var colors = {{ colors|tojson }};
 
     function initMap() {
@@ -431,23 +448,66 @@
             }
         });
 
-        getListings();  
+        var bounds = new google.maps.LatLngBounds();
+        bounds.extend(new google.maps.LatLng({{ place.ne_lat }}, {{ place.ne_lng }}))
+        bounds.extend(new google.maps.LatLng({{ place.sw_lat }}, {{ place.sw_lng}}))
+        map.fitBounds(bounds);
+
+        updateMap('{{ place.place_id }}', {{ place.ne_lat }}, {{ place.ne_lng }}, {{ place.sw_lat }}, {{ place.sw_lng}});
+
+        //wait a second before adding listeners so they don't fire while loading page
+        setTimeout(function(){ 
+            map.addListener('dragend', function() {
+                ne = map.getBounds().getNorthEast();
+                sw = map.getBounds().getSouthWest();
+                updateMap('{{ place.place_id }}', ne.lat(), ne.lng(), sw.lat(), sw.lng());
+            });
+            
+            map.addListener('zoom_changed', function() {
+                ne = map.getBounds().getNorthEast();
+                sw = map.getBounds().getSouthWest();
+                updateMap('{{ place.place_id }}', ne.lat(), ne.lng(), sw.lat(), sw.lng());
+            }); 
+        }, 1000);
+        
     }
 
+    function updateMap(place_id, ne_lat, ne_lng, sw_lat, sw_lng) {
+        clearMarkers();
+
+        getAvgBookingsByBedroomByLat(place_id, ne_lat, ne_lng, sw_lat, sw_lng, function() {
+
+            getAirbnbListings(place_id, ne_lat, ne_lng, sw_lat, sw_lng, function() {
+
+                getForSale(ne_lat, ne_lng, sw_lat, sw_lng, function() {
+
+                    updateAvgCostAnalysis();
+
+                });
+            });
+        });
+    }
+
+    function donenow() { console.log('done'); }
+
+
     /* ajaxFunctions */
-    function getListings () {
-        $.getJSON('/place/_listings_geojson/{{ place.place_id }}', function(listings) {
+    function getAvgBookingsByBedroomByLat(place_id, ne_lat, ne_lng, sw_lat, sw_lng, callback) {
+        $.getJSON('/place/_get_avg_bookings_by_bedroom/' + place_id + '/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(abbb) {
+                avg_bookings_by_bedrooms = abbb;
+                callback();
+        });
 
-            //var heatmapData = [];
-            var bounds = new google.maps.LatLngBounds();
+        //callback();
+    }
 
-            bounds.extend(new google.maps.LatLng({{ place.ne_lat }}, {{ place.ne_lng }}))
-            bounds.extend(new google.maps.LatLng({{ place.sw_lat }}, {{ place.sw_lng }}))
+    function getAirbnbListings (place_id, ne_lat, ne_lng, sw_lat, sw_lng, callback) {
+        $.getJSON('/place/_listings_geojson/' + place_id + '/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(listings) {
 
             for (i = 0; i < listings.length; i++) {
 
                 var latLng = new google.maps.LatLng(listings[i]['lat'], listings[i]['lng'])
-                bounds.extend(latLng)
+                //bounds.extend(latLng)
 
                 var marker = new google.maps.Marker({
                     map: map,
@@ -475,6 +535,8 @@
                                 '</tr></table>' +
                                 '</div>';
 
+                airbnbMarkers.push(marker);
+
                 var infoWindow = new google.maps.InfoWindow();
 
                 marker.addListener('click', function() {
@@ -484,29 +546,14 @@
 
             };
 
-            map.fitBounds(bounds);
-
-            getForSale({{ place.ne_lat }}, {{ place.ne_lng }}, {{ place.sw_lat }}, {{ place.sw_lng}});
-
-            map.addListener('dragend', function() {
-                clearForSale();
-                ne = map.getBounds().getNorthEast();
-                sw = map.getBounds().getSouthWest();
-                getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng());
-            });
-            
-            map.addListener('zoom_changed', function() {
-                clearForSale();
-                ne = map.getBounds().getNorthEast();
-                sw = map.getBounds().getSouthWest();
-                getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng());
-            });
-            
+            callback();
 
         });
+
+        
     }
 
-    function getForSale(ne_lat, ne_lng, sw_lat, sw_lng) {
+    function getForSale(ne_lat, ne_lng, sw_lat, sw_lng, callback) {
 
         //empty the scroller
         $('#for_sale_listings').find("tr:gt(0)").remove();
@@ -535,15 +582,6 @@
                                 scale: 2,
                                 labelOrigin: new google.maps.Point(0, 8),
                                 strokeColor: getColor(card.beds)
-
-                                /*
-                                url: '/static/images/home' + cleanNumber(card.beds) + '.png',
-                                labelOrigin: new google.maps.Point(0, 25),
-                                scaledSize: {
-                                    height: 20,
-                                    width: 20
-                                }
-                                */
                             },
                             label: {
                                 text: 'wait for it...',
@@ -600,13 +638,7 @@
                         });
 
                         //populate the scroller with this house info
-                        /*
-                        $('#for_sale_listings tr:last').after(
-                            tmpl("for_sale_houses_tmpl", marker)
-                        );
-                        */
                         populateScroller(marker);
-
 
                     }
 
@@ -619,9 +651,10 @@
                 $('#for_sale_listings tr:last').after("<tr><td colspan='3'>No results returned</td></tr>");
             }
 
-            updateAvgCostAnalysis();
-            
+            callback();
+
         });
+
     }
 
     //populate the scroller in order by cap rate desc
@@ -702,95 +735,130 @@
         };
     }
 
-    function clearForSale() {
-
+    function clearMarkers() {
         for (var i = 0; i < forSaleMarkers.length; i++) {
             forSaleMarkers[i].setMap(null);
         }
-        
         forSaleMarkers = [];
 
-        for (var i = 0; i < avg_bookings_by_bedrooms.length; i++) {
-            avg_bookings_by_bedrooms[i].count_for_sale = 0;
-            avg_bookings_by_bedrooms[i].avg_cost = 0;
+        for (var i = 0; i < airbnbMarkers.length; i++) {
+            airbnbMarkers[i].setMap(null);
         }
-        
+        airbnbMarkers = [];
     }
+
+    function clearCostAnalysis(bedroom_count) {
+        $('#bedrooms_' + bedroom_count + '_count_homes').html('-');
+        $('#bedrooms_' + bedroom_count + '_avg_bookings').html('-');
+        $('#bedrooms_' + bedroom_count + '_eighty_pct').html('-');
+        $('#bedrooms_' + bedroom_count + '_count_for_sale').html('-');
+        $('#bedrooms_' + bedroom_count + '_avg_cost').html('-');
+        $('#bedrooms_' + bedroom_count + '_cap_rate').html('-');
+        $('#bedrooms_' + bedroom_count + '_yearly_roi').html('-');
+    }
+
 
     //loop through the forSaleMarkers array and update the average monthly table
     function updateAvgCostAnalysis() {
 
+        //loop through 0-6 bedroom houses and update total num houses and total cost
+        for (i = 0; i <= 6; i++) {
+            //clear out what is currently on the cost analysis
+            clearCostAnalysis(i);
+
+            updateAvgCostAirbnbListings(i);
+            updateAvgCostForSaleListings(i);
+        }
+ 
+    }
+
+    function updateAvgCostAirbnbListings(bedroom_count) {
+
+        //update background color
+        $('#bedrooms_' + bedroom_count + '_count_bedrooms').css('background-color', getColor(bedroom_count));
+
+        var result = $.grep(avg_bookings_by_bedrooms, function(item) {
+            return item.i_bedrooms == bedroom_count;
+        });
+
+        if (result.length > 0) {
+            $('#bedrooms_' + bedroom_count + '_count_homes').html(result[0].count_homes);
+            $('#bedrooms_' + bedroom_count + '_avg_bookings').html(displayNumber(result[0].avg_bookings, 0, '$'));
+            $('#bedrooms_' + bedroom_count + '_eighty_pct').html(displayNumber(result[0].eighty_pct, 0, '$'));
+        }
+    }
+
+    function updateAvgCostForSaleListings(bedroom_count) {
         var arr = [];
 
-        //loop through 1-5 bedroom houses and update total num houses and total cost
-        for (i = 0; i <= 5; i++) {
+        //grab all the x bedroom houses and put into array
+        var forSaleResults = $.grep(forSaleMarkers, function(item){
+            return item.bedrooms == bedroom_count + 'bd';
+        });
+        //if there are airbnb's in this area, get their aggregated values
+        var airbnbListingResults = $.grep(avg_bookings_by_bedrooms, function(item) {
+            return item.i_bedrooms == bedroom_count;
+        });
+
+        if (forSaleResults.length > 0) {
+
+            //if we haven't started the dictionary for houses with this many bedrooms yet, then start it now
+            var exists = arr[bedroom_count];
+            if (!exists)
+                arr[bedroom_count] = {"count_for_sale": 0, "total_op_ex": 0, "total_price": 0, "avg_price": 0, "avg_cost": 0, "avg_mortgage": 0};
+
+            //read dictionary into var for simple reference
+            thisListing = arr[bedroom_count];
+
+            //loop through all houses with this many bedrooms and update the dictionary
+            for (j = 0; j < forSaleResults.length; j++) {
+
+                //only try to calculate the forSaleResultss if this is a number
+                if ($.isNumeric(forSaleResults[j].price.replace(/[^0-9\.]+/g,""))) {
+                    thisListing.count_for_sale += 1;
+
+                    let all_costs = singleHouseAnalysis(forSaleResults[j], false);
+                    thisListing.total_price += all_costs.price;
+                    thisListing.total_op_ex += all_costs.op_ex_per_month;
+                }
+
+
+            }
+
+            //get average cost of ownership and mortgage
+            if (thisListing.total_op_ex > 0 && thisListing.count_for_sale > 0) {
+                thisListing.avg_cost = Math.round(thisListing.total_op_ex / thisListing.count_for_sale);
+                thisListing.avg_price = Math.round(thisListing.total_price / thisListing.count_for_sale);
+                thisListing.avg_mortgage = calculateMortgage((thisListing.total_price / thisListing.count_for_sale));
+            }
+
+            down_payment = calculateDownPayment(thisListing.avg_price);
+            closing_costs = calculateClosingCosts(thisListing.avg_price);
+            furnishing_costs = calculateFurnishingCosts(thisListing.avg_price);
             
-            //grab all the x bedroom houses and put into array
-            var result = $.grep(forSaleMarkers, function(item){
-                return item.bedrooms == i + 'bd';
-            });
-
-            //loop through all houses with x number bedrooms
-            if (result.length > 0) {
-
-                //if we haven't started the dictionary for houses with this many bedrooms yet, then start it now
-                var exists = arr[i];
-                if (!exists)
-                    arr[i] = {"count_for_sale": 0, "total_op_ex": 0, "total_price": 0, "avg_price": 0, "avg_cost": 0, "avg_mortgage": 0};
-
-                //read dictionary into var for simple reference
-                thisListing = arr[i];
-
-                //loop through all houses with this many bedrooms and update the dictionary
-                for (j = 0; j < result.length; j++) {
-
-                    //only try to calculate the results if this is a number
-                    if ($.isNumeric(result[j].price.replace(/[^0-9\.]+/g,""))) {
-                        thisListing.count_for_sale += 1;
-
-                        var all_costs = singleHouseAnalysis(result[j], false);
-                        thisListing.total_price += all_costs.price;
-                        thisListing.total_op_ex += all_costs.op_ex_per_month;
-                    }
-                }
-
-                //get average cost of ownership and mortgage
-                if (thisListing.total_op_ex > 0 && thisListing.count_for_sale > 0) {
-                    thisListing.avg_cost = Math.round(thisListing.total_op_ex / thisListing.count_for_sale);
-                    thisListing.avg_price = Math.round(thisListing.total_price / thisListing.count_for_sale);
-                    thisListing.avg_mortgage = calculateMortgage((thisListing.total_price / thisListing.count_for_sale));
-                }
-
-                var exists = avg_bookings_by_bedrooms[i];
-                if (!exists)
-                    avg_bookings_by_bedrooms[i] = { "avg_price": 0,
-                                                    "avg_bookings": 0, 
-                                                    "count_homes": 0, 
-                                                    "i_bedrooms": i, 
-                                                    "count_for_sale": 0,
-                                                    "avg_cost": 0,
-                                                    "avg_mortgage": 0,
-                                                }
-
-                avg_bookings_by_bedrooms[i].avg_price = thisListing.avg_price;
-                avg_bookings_by_bedrooms[i].count_for_sale = thisListing.count_for_sale;
-                avg_bookings_by_bedrooms[i].avg_cost = thisListing.avg_cost;
-                avg_bookings_by_bedrooms[i].avg_mortgage = thisListing.avg_mortgage;
-                    
+            if (airbnbListingResults.length > 0) {
+                yearly_net_80 = (airbnbListingResults[0].eighty_pct - thisListing.avg_cost) * 12;
+                yearly_roi_80 = calculateROI(yearly_net_80, down_payment, closing_costs, furnishing_costs);
+                cap_rate_80 = calculateCapRate(thisListing.avg_price, airbnbListingResults[0].eighty_pct, thisListing.avg_cost, thisListing.avg_mortgage);
             }
             
+            let td_class = "";
+            if (cap_rate_80 > 10) {
+                td_class = "success";
+            }
+            else if (cap_rate_80 < 10) {
+                td_class = "danger"; 
+            }
+
+            $('#bedrooms_' + bedroom_count + '_count_for_sale').html(thisListing.count_for_sale);
+            $('#bedrooms_' + bedroom_count + '_avg_cost').html('$' + thisListing.avg_cost);
+            $('#bedrooms_' + bedroom_count + '_cap_rate').html(cap_rate_80 + '%').removeClass().addClass(td_class);
+            $('#bedrooms_' + bedroom_count + '_yearly_roi').html(yearly_roi_80 + '%').removeClass().addClass(td_class);
+
+
         }
-
-        
-        var result = $.grep(avg_bookings_by_bedrooms, function(item) {
-            return typeof(item) == "object";
-        });
-        displayAvgBookingsTable(result);
     }
 
-    function displayAvgBookingsTable(data) {
-        $('#avg_by_num_bedrooms_div').html(tmpl("avg_by_num_bedrooms_tmpl", data));
-    }
 
     function singleHouseAnalysis(marker, display_it) {
         id = marker.id;
@@ -814,62 +882,73 @@
         repairs = calculateRepairs(price);
         
         revenue = getAvgBookingsByBedrooms(bedrooms);
-        bookings_eighty_percent = revenue.eighty_pct;
-        bookings_average = revenue.avg_bookings;
-        management_fee = calculateManagementFee(bookings_eighty_percent);
+        if (revenue) {
+            bookings_eighty_percent = revenue.eighty_pct;
+            bookings_average = revenue.avg_bookings;
+            management_fee = calculateManagementFee(bookings_eighty_percent);
+        
+            op_ex_per_month = mortgage_payment + property_tax + mortgage_insurance + short_term_insurance + hoa + utilities_internet + repairs + management_fee;
+            op_ex_per_year = op_ex_per_month * 12;
 
-        op_ex_per_month = mortgage_payment + property_tax + mortgage_insurance + short_term_insurance + hoa + utilities_internet + repairs + management_fee;
-        op_ex_per_year = op_ex_per_month * 12;
+            monthly_net_average = bookings_average - op_ex_per_month;
+            yearly_net_average = monthly_net_average * 12;
+            yearly_roi_average = calculateROI(yearly_net_average, down_payment, closing_costs, furnishing_costs);
+            cap_rate_average = calculateCapRate(price, bookings_average, op_ex_per_month, mortgage_payment);
 
-        monthly_net_average = bookings_average - op_ex_per_month;
-        yearly_net_average = monthly_net_average * 12;
-        yearly_roi_average = calculateROI(yearly_net_average, down_payment, closing_costs, furnishing_costs);
-        cap_rate_average = calculateCapRate(price, bookings_average, op_ex_per_month, mortgage_payment);
-
-        monthly_net_80 = bookings_eighty_percent - op_ex_per_month;
-        yearly_net_80 = monthly_net_80 * 12;
-        yearly_roi_80 = calculateROI(yearly_net_80, down_payment, closing_costs, furnishing_costs);
-        cap_rate_80 = calculateCapRate(price, bookings_eighty_percent, op_ex_per_month, mortgage_payment);
+            monthly_net_80 = bookings_eighty_percent - op_ex_per_month;
+            yearly_net_80 = monthly_net_80 * 12;
+            yearly_roi_80 = calculateROI(yearly_net_80, down_payment, closing_costs, furnishing_costs);
+            cap_rate_80 = calculateCapRate(price, bookings_eighty_percent, op_ex_per_month, mortgage_payment);
 
 
-        house_object = { 
-            "id": id,
-            "address": address,
-            "bedrooms": bedrooms,
-            "bathrooms": bathrooms,
-            "photo_url": photo_url,
-            "sq_ft": sq_ft,
-            "price": price,
-            "down_payment": down_payment,
-            "closing_costs": closing_costs,
-            "furnishing_costs": furnishing_costs,
-            "total_acquisition_cost": total_acquisition_cost,
-            "bookings_average": bookings_average,
-            "bookings_eighty_percent": bookings_eighty_percent,
-            "mortgage_payment": mortgage_payment,
-            "property_tax": property_tax,
-            "mortgage_insurance": mortgage_insurance,
-            "short_term_insurance": short_term_insurance,
-            "utilities_internet": utilities_internet,
-            "repairs": repairs,
-            "management_fee": management_fee,
-            "op_ex_per_month": op_ex_per_month, 
-            "op_ex_per_year": op_ex_per_year,
-            "monthly_net_average": monthly_net_average,
-            "yearly_net_average": yearly_net_average,
-            "yearly_roi_average": yearly_roi_average,
-            "cap_rate_average": cap_rate_average,
-            "monthly_net_80": monthly_net_80, 
-            "yearly_net_80": yearly_net_80,
-            "yearly_roi_80": yearly_roi_80,
-            "cap_rate_80": cap_rate_80
+            
+
+            house_object = { 
+                "id": id,
+                "address": address,
+                "bedrooms": bedrooms,
+                "bathrooms": bathrooms,
+                "photo_url": photo_url,
+                "sq_ft": sq_ft,
+                "price": price,
+                "down_payment": down_payment,
+                "closing_costs": closing_costs,
+                "furnishing_costs": furnishing_costs,
+                "total_acquisition_cost": total_acquisition_cost,
+                "bookings_average": bookings_average,
+                "bookings_eighty_percent": bookings_eighty_percent,
+                "mortgage_payment": mortgage_payment,
+                "property_tax": property_tax,
+                "mortgage_insurance": mortgage_insurance,
+                "short_term_insurance": short_term_insurance,
+                "utilities_internet": utilities_internet,
+                "repairs": repairs,
+                "management_fee": management_fee,
+                "op_ex_per_month": op_ex_per_month, 
+                "op_ex_per_year": op_ex_per_year,
+                "monthly_net_average": monthly_net_average,
+                "yearly_net_average": yearly_net_average,
+                "yearly_roi_average": yearly_roi_average,
+                "cap_rate_average": cap_rate_average,
+                "monthly_net_80": monthly_net_80, 
+                "yearly_net_80": yearly_net_80,
+                "yearly_roi_80": yearly_roi_80,
+                "cap_rate_80": cap_rate_80
+            }
+
+            if (display_it) {
+                displayHouseAnalysis(house_object);
+            }
+
+            return house_object;
+        }
+        else {
+            console.log('singleHouseAnalysis.getAvgBookingsByBedrooms returns nothing');
+
+            return {}
         }
 
-        if (display_it) {
-            displayHouseAnalysis(house_object);
-        }
 
-        return house_object;
     }
 
     function displayHouseAnalysis(house_object) {
@@ -969,7 +1048,7 @@
     }
 
     function calculateROI(yearly_net_average, down_payment, closing_costs, furnishing_costs) {
-        return (yearly_net_average / (down_payment + closing_costs + furnishing_costs)) * 100
+        return displayNumber((yearly_net_average / (down_payment + closing_costs + furnishing_costs)) * 100, 1);
     }
 
     function calculateCapRate(price, monthly_bookings, monthly_op_ex, monthly_mortgage) {
@@ -979,7 +1058,7 @@
         if (cap_rate == Infinity)
             return 'n/a';
         else
-            return cap_rate;
+            return displayNumber(cap_rate, 1);
     }
 
     function cleanNumber(num) {
@@ -1048,7 +1127,6 @@
     </script>
     <script>
     $(document).ready(function() {
-        //getListings();
         initMap();
     });
     </script>

@@ -32,8 +32,9 @@ def add_place_page():
 def view_place_page(place_id):
     utils.log('view_place_page(%s)' % place_id, None)
     place = utils_db.get_place(place_id)
-    avg_bookings_by_bedrooms = utils_db.get_avg_bookings_by_bedrooms(place_id)
-    return render_template("view_place.html", place=place, avg_bookings_by_bedrooms=avg_bookings_by_bedrooms, google_api_key_js_map=vars.google_api_key_js_map, colors=vars.colors)
+    #avg_bookings_by_bedrooms = utils_db.get_avg_bookings_by_bedrooms(place_id)
+    #return render_template("view_place.html", place=place, avg_bookings_by_bedrooms=avg_bookings_by_bedrooms, google_api_key_js_map=vars.google_api_key_js_map, colors=vars.colors)
+    return render_template("view_place.html", place=place, google_api_key_js_map=vars.google_api_key_js_map, colors=vars.colors)
 
 @place.route("/view_place/<place_id>/queue")
 @flask_login.login_required
@@ -81,12 +82,18 @@ def insert_place_api():
 
     return redirect("/")
 
-
-@place.route("/_listings_geojson/<place_id>")
+@place.route("/_get_avg_bookings_by_bedroom/<place_id>/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>")
 @flask_login.login_required
-def get_listings_geojson_api(place_id):
+def get_avg_bookings_by_bedroom_api(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
+    utils.log('get_avg_bookings_by_bedroom_api', 'Get averages and eighty pct')
+    avg_bookings_by_bedrooms = utils_db.get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng)
+    return jsonify(avg_bookings_by_bedrooms)
+
+@place.route("/_listings_geojson/<place_id>/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>")
+@flask_login.login_required
+def get_listings_geojson_api(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
     utils.log('get_listings_geojson_api', 'Return GeoJSON for listings in place: %s' % place_id)
-    listings = utils_db.get_listings(place_id)
+    listings = utils_db.get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng)
     return jsonify(listings)
 
 @place.route("/_for_sale/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>")
