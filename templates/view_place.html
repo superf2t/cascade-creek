@@ -661,11 +661,11 @@
     function populateScroller(marker) {
         //$('#for_sale_listings')
         //tmpl("for_sale_houses_tmpl", marker)
-        cap_rate = marker.cap_rate_80;
+        let cap_rate = marker.cap_rate_80;
 
         //get data attribute values of existing tr's and read into array
         var dataList = $("#for_sale_listings tr[data-cap]").map(function() {
-            return parseFloat(displayNumber($(this).data("cap"), 1));
+            return parseFloat($(this).data("cap"), 1);
         }).get();
 
         //if no rows are added yet, add it
@@ -678,7 +678,8 @@
             //loop through, find the first one this is smaller than, and insert
             for (var i = 0; i < dataList.length; i++) {
                 if (cap_rate > dataList[i]) {
-                    $('#for_sale_listings tr[data-cap="' + dataList[i] + '"').before(
+                    //$('#for_sale_listings tr[data-cap="' + dataList[i] + '"').before(
+                    $('#for_sale_listings tr[data-cap]').eq(i).before(
                         tmpl("for_sale_houses_tmpl", marker)
                     );
                     i = 999;
