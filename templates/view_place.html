@@ -665,7 +665,7 @@
 
         //get data attribute values of existing tr's and read into array
         var dataList = $("#for_sale_listings tr[data-cap]").map(function() {
-            return Number($(this).data("cap"));
+            return parseFloat(displayNumber($(this).data("cap"), 1));
         }).get();
 
         //if no rows are added yet, add it
