@@ -861,8 +861,8 @@
             }
 
             $('#bedrooms_' + bedroom_count + '_count_for_sale').html(thisListing.count_for_sale);
-            $('#bedrooms_' + bedroom_count + '_avg_price').html('$' + thisListing.avg_price);
-            $('#bedrooms_' + bedroom_count + '_avg_cost').html('$' + thisListing.avg_cost);
+            $('#bedrooms_' + bedroom_count + '_avg_price').html(displayNumber(thisListing.avg_price, 0, '$'));
+            $('#bedrooms_' + bedroom_count + '_avg_cost').html(displayNumber(thisListing.avg_cost, 0, '$'));
             $('#bedrooms_' + bedroom_count + '_cap_rate').html(cap_rate_80 + '%').removeClass().addClass(td_class);
             $('#bedrooms_' + bedroom_count + '_yearly_roi').html(yearly_roi_80 + '%').removeClass().addClass(td_class);
 
