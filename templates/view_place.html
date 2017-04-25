@@ -139,6 +139,17 @@
         <td align="center" id="bedrooms_6_cap_rate">-</td>
         <td align="center" id="bedrooms_6_yearly_roi">-</td>
     </tr>
+    <tr id="bedrooms_99">
+        <td align="center" id="bedrooms_99_count_bedrooms">6</td>
+        <td align="center" id="bedrooms_99_count_homes">-</td>
+        <td align="center" id="bedrooms_99_count_for_sale">-</td>
+        <td align="center" id="bedrooms_99_avg_price">-</td>
+        <td align="center" id="bedrooms_99_avg_cost">-</td>
+        <td align="center" id="bedrooms_99_avg_bookings">-</td>
+        <td align="center" id="bedrooms_99_eighty_pct">-</td>
+        <td align="center" id="bedrooms_99_cap_rate">-</td>
+        <td align="center" id="bedrooms_99_yearly_roi">-</td>
+    </tr>
     </table>
 
     <form>
@@ -779,6 +790,11 @@
             updateAvgCostAirbnbListings(i);
             updateAvgCostForSaleListings(i);
         }
+
+        //overall average
+        clearCostAnalysis(99);
+        updateAvgCostAirbnbListings(99);
+        updateAvgCostForSaleListings(99);
  
     }
 
@@ -787,9 +803,14 @@
         //update background color
         $('#bedrooms_' + bedroom_count + '_count_bedrooms').css('background-color', getColor(bedroom_count));
 
-        var result = $.grep(avg_bookings_by_bedrooms, function(item) {
-            return item.i_bedrooms == bedroom_count;
-        });
+        //if overall average, no need to do this
+        var result;
+        if (bedroom_count < 99) 
+            result = $.grep(avg_bookings_by_bedrooms, function(item) {
+                return item.i_bedrooms == bedroom_count;
+            });
+        else
+            result = avg_bookings_by_bedrooms;
 
         if (result.length > 0) {
             $('#bedrooms_' + bedroom_count + '_count_homes').html(result[0].count_homes);
