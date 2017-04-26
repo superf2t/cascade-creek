@@ -140,7 +140,7 @@
         <td align="center" id="bedrooms_6_yearly_roi">-</td>
     </tr>
     <tr id="bedrooms_99">
-        <td align="center" id="bedrooms_99_count_bedrooms">6</td>
+        <td align="center" id="bedrooms_99_count_bedrooms">All</td>
         <td align="center" id="bedrooms_99_count_homes">-</td>
         <td align="center" id="bedrooms_99_count_for_sale">-</td>
         <td align="center" id="bedrooms_99_avg_price">-</td>
@@ -724,12 +724,14 @@
         var monthly_short_term_insurance_per_100k = $('#monthly_short_term_insurance_per_100k').val();
         var monthly_utilities_per_sq_ft = $('#monthly_utilities_per_sq_ft').val();
         var monthly_internet_fee = $('#monthly_internet_fee').val();
+        var monthly_management_fee = $('#monthly_management_fee').val();
 
         querystring = 'monthly_property_tax_per_100k=' + monthly_property_tax_per_100k +
                         '&monthly_mortgage_insurance_per_100k=' + monthly_mortgage_insurance_per_100k +
                         '&monthly_short_term_insurance_per_100k=' + monthly_short_term_insurance_per_100k +
                         '&monthly_utilities_per_sq_ft=' + monthly_utilities_per_sq_ft +
-                        '&monthly_internet_fee=' + monthly_internet_fee
+                        '&monthly_internet_fee=' + monthly_internet_fee +
+                        '&monthly_management_fee=' + monthly_management_fee
 
 
         $.getJSON('/place/_submit_monthly_fee_form/{{ place.place_id }}?' + querystring, function(result) {
@@ -804,47 +806,71 @@
         $('#bedrooms_' + bedroom_count + '_count_bedrooms').css('background-color', getColor(bedroom_count));
 
         //if overall average, no need to do this
-        var result;
-        if (bedroom_count < 99) 
-            result = $.grep(avg_bookings_by_bedrooms, function(item) {
+        if (bedroom_count < 99) {
+            var result = $.grep(avg_bookings_by_bedrooms, function(item) {
                 return item.i_bedrooms == bedroom_count;
             });
-        else
-            result = avg_bookings_by_bedrooms;
 
-        if (result.length > 0) {
-            $('#bedrooms_' + bedroom_count + '_count_homes').html(result[0].count_homes);
-            $('#bedrooms_' + bedroom_count + '_avg_bookings').html(displayNumber(result[0].avg_bookings, 0, '$'));
-            $('#bedrooms_' + bedroom_count + '_eighty_pct').html(displayNumber(result[0].eighty_pct, 0, '$'));
+            if (result.length > 0) {
+                $('#bedrooms_' + bedroom_count + '_count_homes').html(result[0].count_homes);
+                $('#bedrooms_' + bedroom_count + '_avg_bookings').html(displayNumber(result[0].avg_bookings, 0, '$'));
+                $('#bedrooms_' + bedroom_count + '_eighty_pct').html(displayNumber(result[0].eighty_pct, 0, '$'));
+            }
         }
+        else {
+            //loop through everything and get averages
+            let total = getTotalAvgAirbnbListings();
+
+            $('#bedrooms_99_count_homes').html(total.count_homes);
+            $('#bedrooms_99_avg_bookings').html(displayNumber(total.avg_bookings, 0, '$'));
+            $('#bedrooms_99_eighty_pct').html(displayNumber(total.eighty_pct, 0, '$'));
+        }
+        
     }
 
     function updateAvgCostForSaleListings(bedroom_count) {
-        var arr = [];
 
-        //grab all the x bedroom houses and put into array
-        var forSaleResults = $.grep(forSaleMarkers, function(item){
-            return item.bedrooms == bedroom_count + 'bd';
-        });
-        //if there are airbnb's in this area, get their aggregated values
-        var airbnbListingResults = $.grep(avg_bookings_by_bedrooms, function(item) {
-            return item.i_bedrooms == bedroom_count;
-        });
+        //get specific bedroom if < 99, otherwise get average of everything
+        if (bedroom_count < 99) {
+            //grab all the x bedroom houses and put into array
+            var forSaleResults = $.grep(forSaleMarkers, function(item){
+                return item.bedrooms == bedroom_count + 'bd';
+            });
+
+            //if there are airbnb's in this area, get their aggregated values
+            var airbnbListingResults = $.grep(avg_bookings_by_bedrooms, function(item) {
+                return item.i_bedrooms == bedroom_count;
+            });
+        }
+        else {
+            //forSaleResults = forSaleMarkers;
+            //grab all the 0-6 bedroom houses
+            var forSaleResults = $.grep(forSaleMarkers, function(item) {
+                return item.bedrooms == '0bd' || item.bedrooms == '1bd' || 
+                        item.bedrooms == '2bd' || item.bedrooms == '3bd' || 
+                        item.bedrooms == '4bd' || item.bedrooms == '5bd' || 
+                        item.bedrooms == '6bd';
+            });
+
+            //grab avg of all airbnb's
+            var airbnbListingResults = [];
+            airbnbListingResults[0] = getTotalAvgAirbnbListings();
+        }
 
         if (forSaleResults.length > 0) {
-
-            //if we haven't started the dictionary for houses with this many bedrooms yet, then start it now
-            var exists = arr[bedroom_count];
-            if (!exists)
-                arr[bedroom_count] = {"count_for_sale": 0, "total_op_ex": 0, "total_price": 0, "avg_price": 0, "avg_cost": 0, "avg_mortgage": 0};
-
-            //read dictionary into var for simple reference
-            thisListing = arr[bedroom_count];
+            var thisListing = {
+                                "count_for_sale": 0, 
+                                "total_op_ex": 0, 
+                                "total_price": 0, 
+                                "avg_price": 0, 
+                                "avg_cost": 0, 
+                                "avg_mortgage": 0
+                            };
 
             //loop through all houses with this many bedrooms and update the dictionary
             for (j = 0; j < forSaleResults.length; j++) {
 
-                //only try to calculate the forSaleResultss if this is a number
+                //only try to calculate the forSaleResults if this is a number
                 if ($.isNumeric(forSaleResults[j].price.replace(/[^0-9\.]+/g,""))) {
                     thisListing.count_for_sale += 1;
 
@@ -858,6 +884,7 @@
 
             //get average cost of ownership and mortgage
             if (thisListing.total_op_ex > 0 && thisListing.count_for_sale > 0) {
+
                 thisListing.avg_cost = Math.round(thisListing.total_op_ex / thisListing.count_for_sale);
                 thisListing.avg_price = Math.round(thisListing.total_price / thisListing.count_for_sale);
                 thisListing.avg_mortgage = calculateMortgage((thisListing.total_price / thisListing.count_for_sale));
@@ -889,6 +916,24 @@
 
 
         }
+    }
+
+    function getTotalAvgAirbnbListings() {
+        let count_homes = avg_bookings = eighty_pct = total_avg_bookings = total_eighty_pct = 0;
+        for (let i = 0; i < avg_bookings_by_bedrooms.length; i++) {
+            count_homes += avg_bookings_by_bedrooms[i].count_homes;
+            total_avg_bookings += (avg_bookings_by_bedrooms[i].avg_bookings * avg_bookings_by_bedrooms[i].count_homes);
+            total_eighty_pct += (avg_bookings_by_bedrooms[i].eighty_pct * avg_bookings_by_bedrooms[i].count_homes);
+        }
+
+        avg_bookings = total_avg_bookings / count_homes;
+        eighty_pct = total_eighty_pct / count_homes;
+
+        return {
+            "count_homes": count_homes,
+            "avg_bookings": avg_bookings,
+            "eighty_pct": eighty_pct
+        };
     }
 
 
