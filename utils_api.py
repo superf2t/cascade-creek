@@ -125,7 +125,8 @@ def build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng,
             "price": {
                 "min": "0",
                 "max": "*"
-            }
+            },
+            "propertyTypes":["single_family_home","apartment","apartment_condo_townhouse","condo","coops","loft","tic","townhouse"]
         }
     }
 
