@@ -56,10 +56,10 @@ def get_place_search(place_search_url):
     return result.json()
 
 # call trulia and get for sale listings
-def get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng):
+def get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng, min_beds, max_beds, max_price):
     time_start = time.time()
 
-    filters = build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng)
+    filters = build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng, min_beds, max_beds, max_price)
     filters = filters.replace("'", '"')
     
     # call trulia and bring it on back
@@ -78,7 +78,10 @@ def get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng):
 ####################
 
 # build querystring param for Trulia search
-def build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng):
+def build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng, 
+                        min_beds, max_beds,
+                        max_price):
+
     template = {
         "searchType":"for_sale",
         "location": {
@@ -114,7 +117,15 @@ def build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng):
                 "ascending":"true"
             },
             "offset":0,
-            "zoom":13
+            "zoom":13,
+            "bedrooms": {
+                "min": 0,
+                "max": "*"
+            },
+            "price": {
+                "min": "0",
+                "max": "*"
+            }
         }
     }
 
@@ -135,5 +146,10 @@ def build_trulia_json(ne_lat, ne_lng, sw_lat, sw_lng):
 
     template['location']['coordinates']['center']['latitude'] = str((Decimal(ne_lat) + Decimal(sw_lat)) / 2)
     template['location']['coordinates']['center']['longitude'] = str((Decimal(ne_lng) + Decimal(sw_lng)) / 2)
+
+    template['filters']['bedrooms']['min'] = str(min_beds);
+    template['filters']['bedrooms']['max'] = str(max_beds);
+
+    template['filters']['price']['max'] = str(max_price);
 
     return str(template)

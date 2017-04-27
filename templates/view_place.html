@@ -31,9 +31,52 @@
             <a href="/place/view_place/{{ place.place_id }}/queue" class="btn btn-primary">Scrape Airbnb</a></small>
     {% endif %}
     </h1>
-    <h3>{{ place.listing_count }} Listings</h3>
+    
 
     <br />
+
+    <div class="row" style="margin-bottom: 10px">
+        <div class="col-sm-3">
+            <h3>{{ place.listing_count }} Listings</h3>        
+        </div>
+        <div class="col-sm-9">
+            <small>Filter "For Sale" results:</small>
+            <form class="form-inline">
+                <select class="form-control" id="min_bedroom_count" onchange="filterForSale()">
+                <option value="0" selected>Min beds</option>
+                <option value="1">1 bed</option>
+                <option value="2">2 beds</option>
+                <option value="3">3 beds</option>
+                <option value="4">4 beds</option>
+                <option value="5">5 beds</option>
+                <option value="6">6 beds</option>
+                </select>
+                &nbsp;
+                <select class="form-control" id="max_bedroom_count" onchange="filterForSale()">
+                <option value="1">1 bed</option>
+                <option value="2">2 beds</option>
+                <option value="3">3 beds</option>
+                <option value="4">4 beds</option>
+                <option value="5">5 beds</option>
+                <option value="6">6 beds</option>
+                <option value="*" selected>Max beds</option>
+                </select>
+                &nbsp;&nbsp;
+                <select class="form-control" id="max_price" onchange="filterForSale()">
+                <option value="100000">$100k max</option>
+                <option value="150000">$150k max</option>
+                <option value="200000">$200k max</option>
+                <option value="250000">$250k max</option>
+                <option value="300000">$300k max</option>
+                <option value="350000">$350k max</option>
+                <option value="400000">$400k max</option>
+                <option value="450000">$450k max</option>
+                <option value="500000">$500k max</option>
+                <option value="*" selected>Max price</option>
+                </select>
+            </form>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-md-9"><div id="map"></div></div>
@@ -138,17 +181,6 @@
         <td align="center" id="bedrooms_6_eighty_pct">-</td>
         <td align="center" id="bedrooms_6_cap_rate">-</td>
         <td align="center" id="bedrooms_6_yearly_roi">-</td>
-    </tr>
-    <tr id="bedrooms_99">
-        <td align="center" id="bedrooms_99_count_bedrooms">All</td>
-        <td align="center" id="bedrooms_99_count_homes">-</td>
-        <td align="center" id="bedrooms_99_count_for_sale">-</td>
-        <td align="center" id="bedrooms_99_avg_price">-</td>
-        <td align="center" id="bedrooms_99_avg_cost">-</td>
-        <td align="center" id="bedrooms_99_avg_bookings">-</td>
-        <td align="center" id="bedrooms_99_eighty_pct">-</td>
-        <td align="center" id="bedrooms_99_cap_rate">-</td>
-        <td align="center" id="bedrooms_99_yearly_roi">-</td>
     </tr>
     </table>
 
@@ -498,7 +530,10 @@
 
             getAirbnbListings(place_id, ne_lat, ne_lng, sw_lat, sw_lng, function() {
 
-                getForSale(ne_lat, ne_lng, sw_lat, sw_lng, function() {
+                let min_beds = $('#min_bedroom_count').val();
+                let max_beds = $('#max_bedroom_count').val();
+                let max_price = $('#max_price').val();
+                getForSale(ne_lat, ne_lng, sw_lat, sw_lng, min_beds, max_beds, max_price, function() {
 
                     updateAvgCostAnalysis();
 
@@ -572,13 +607,13 @@
         
     }
 
-    function getForSale(ne_lat, ne_lng, sw_lat, sw_lng, callback) {
+    function getForSale(ne_lat, ne_lng, sw_lat, sw_lng, min_beds, max_beds, max_price, callback) {
 
         //empty the scroller
         $('#for_sale_listings').find("tr:gt(0)").remove();
 
         //get some for sale listings in this area
-        $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(results) {
+        $.getJSON('/place/_for_sale/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng + '/' + min_beds + '/' + max_beds + '/' + max_price, function(results) {
     
             if (results.success != false) {
                 //loop and put markers on screen
@@ -743,6 +778,21 @@
         });
     }
 
+    function filterForSale() {
+        let min_beds = $('#min_bedroom_count').val();
+        let max_beds = $('#max_bedroom_count').val();
+        let max_price = $('#max_price').val();
+        let ne = map.getBounds().getNorthEast();
+        let sw = map.getBounds().getSouthWest();
+
+        clearForSaleMarkers();
+        getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng(), min_beds, max_beds, max_price, function() {
+
+            updateAvgCostAnalysis();
+
+        });
+    }
+
         
     /* displayFunctions */
 
@@ -758,11 +808,16 @@
     }
 
     function clearMarkers() {
+        clearForSaleMarkers();
+        clearAirbnbMarkers();
+    }
+    function clearForSaleMarkers() {
         for (var i = 0; i < forSaleMarkers.length; i++) {
             forSaleMarkers[i].setMap(null);
         }
         forSaleMarkers = [];
-
+    }
+    function clearAirbnbMarkers() {
         for (var i = 0; i < airbnbMarkers.length; i++) {
             airbnbMarkers[i].setMap(null);
         }
@@ -793,11 +848,6 @@
             updateAvgCostForSaleListings(i);
         }
 
-        //overall average
-        clearCostAnalysis(99);
-        updateAvgCostAirbnbListings(99);
-        updateAvgCostForSaleListings(99);
- 
     }
 
     function updateAvgCostAirbnbListings(bedroom_count) {
@@ -805,57 +855,29 @@
         //update background color
         $('#bedrooms_' + bedroom_count + '_count_bedrooms').css('background-color', getColor(bedroom_count));
 
-        //if overall average, no need to do this
-        if (bedroom_count < 99) {
-            var result = $.grep(avg_bookings_by_bedrooms, function(item) {
-                return item.i_bedrooms == bedroom_count;
-            });
+        var result = $.grep(avg_bookings_by_bedrooms, function(item) {
+            return item.i_bedrooms == bedroom_count;
+        });
 
-            if (result.length > 0) {
-                $('#bedrooms_' + bedroom_count + '_count_homes').html(result[0].count_homes);
-                $('#bedrooms_' + bedroom_count + '_avg_bookings').html(displayNumber(result[0].avg_bookings, 0, '$'));
-                $('#bedrooms_' + bedroom_count + '_eighty_pct').html(displayNumber(result[0].eighty_pct, 0, '$'));
-            }
-        }
-        else {
-            //loop through everything and get averages
-            let total = getTotalAvgAirbnbListings();
-
-            $('#bedrooms_99_count_homes').html(total.count_homes);
-            $('#bedrooms_99_avg_bookings').html(displayNumber(total.avg_bookings, 0, '$'));
-            $('#bedrooms_99_eighty_pct').html(displayNumber(total.eighty_pct, 0, '$'));
+        if (result.length > 0) {
+            $('#bedrooms_' + bedroom_count + '_count_homes').html(result[0].count_homes);
+            $('#bedrooms_' + bedroom_count + '_avg_bookings').html(displayNumber(result[0].avg_bookings, 0, '$'));
+            $('#bedrooms_' + bedroom_count + '_eighty_pct').html(displayNumber(result[0].eighty_pct, 0, '$'));
         }
         
     }
 
     function updateAvgCostForSaleListings(bedroom_count) {
 
-        //get specific bedroom if < 99, otherwise get average of everything
-        if (bedroom_count < 99) {
-            //grab all the x bedroom houses and put into array
-            var forSaleResults = $.grep(forSaleMarkers, function(item){
-                return item.bedrooms == bedroom_count + 'bd';
-            });
+        //grab all the x bedroom houses and put into array
+        var forSaleResults = $.grep(forSaleMarkers, function(item){
+            return item.bedrooms == bedroom_count + 'bd';
+        });
 
-            //if there are airbnb's in this area, get their aggregated values
-            var airbnbListingResults = $.grep(avg_bookings_by_bedrooms, function(item) {
-                return item.i_bedrooms == bedroom_count;
-            });
-        }
-        else {
-            //forSaleResults = forSaleMarkers;
-            //grab all the 0-6 bedroom houses
-            var forSaleResults = $.grep(forSaleMarkers, function(item) {
-                return item.bedrooms == '0bd' || item.bedrooms == '1bd' || 
-                        item.bedrooms == '2bd' || item.bedrooms == '3bd' || 
-                        item.bedrooms == '4bd' || item.bedrooms == '5bd' || 
-                        item.bedrooms == '6bd';
-            });
-
-            //grab avg of all airbnb's
-            var airbnbListingResults = [];
-            airbnbListingResults[0] = getTotalAvgAirbnbListings();
-        }
+        //if there are airbnb's in this area, get their aggregated values
+        var airbnbListingResults = $.grep(avg_bookings_by_bedrooms, function(item) {
+            return item.i_bedrooms == bedroom_count;
+        });
 
         if (forSaleResults.length > 0) {
             var thisListing = {
@@ -917,25 +939,6 @@
 
         }
     }
-
-    function getTotalAvgAirbnbListings() {
-        let count_homes = avg_bookings = eighty_pct = total_avg_bookings = total_eighty_pct = 0;
-        for (let i = 0; i < avg_bookings_by_bedrooms.length; i++) {
-            count_homes += avg_bookings_by_bedrooms[i].count_homes;
-            total_avg_bookings += (avg_bookings_by_bedrooms[i].avg_bookings * avg_bookings_by_bedrooms[i].count_homes);
-            total_eighty_pct += (avg_bookings_by_bedrooms[i].eighty_pct * avg_bookings_by_bedrooms[i].count_homes);
-        }
-
-        avg_bookings = total_avg_bookings / count_homes;
-        eighty_pct = total_eighty_pct / count_homes;
-
-        return {
-            "count_homes": count_homes,
-            "avg_bookings": avg_bookings,
-            "eighty_pct": eighty_pct
-        };
-    }
-
 
     function singleHouseAnalysis(marker, display_it) {
         id = marker.id;

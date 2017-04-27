@@ -96,12 +96,12 @@ def get_listings_geojson_api(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
     listings = utils_db.get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng)
     return jsonify(listings)
 
-@place.route("/_for_sale/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>")
+@place.route("/_for_sale/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>/<min_beds>/<max_beds>/<max_price>")
 @flask_login.login_required
-def get_for_sale_api(ne_lat, ne_lng, sw_lat, sw_lng):
+def get_for_sale_api(ne_lat, ne_lng, sw_lat, sw_lng, min_beds, max_beds, max_price):
 
     # get trulia listings for the passed in geo
-    results = utils_api.get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng)
+    results = utils_api.get_trulia_for_sale(ne_lat, ne_lng, sw_lat, sw_lng, min_beds, max_beds, max_price)
 
     return results
 

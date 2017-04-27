@@ -353,6 +353,11 @@ def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
         "    percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct " \
         "from t2 " \
         "group by 1 " \
+        "UNION ALL " \
+        "select 99, count(*) as count_homes, " \
+        "    CAST(sum(avg_monthly_bookings) / count(*) AS INT) as avg_bookings, " \
+        "    percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct " \
+        "from t2 " \
         "order by 1"
     params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
     results = utils.pg_sql(sql, params)
