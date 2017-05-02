@@ -85,9 +85,11 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
         "    group by 1 " \
         "    order by 1 " \
         "), t3 as ( " \
-        "    select t2.i_listing_id, RANK() OVER (ORDER BY t2.count_nights_booked) as count_nights_rank, " \
-        "        RANK() OVER (ORDER BY t2.total_bookings) as total_bookings_rank " \
+        "    select t2.i_listing_id, " \
+        "       RANK() OVER (ORDER BY (t2.count_nights_booked / (t1.count_nights_total * 1.0))) as count_nights_rank, " \
+        "       RANK() OVER (ORDER BY (t2.total_bookings / t1.count_nights_total)) as total_bookings_rank " \
         "    from t2 " \
+        "       join t1 on t2.i_listing_id = t1.i_listing_id " \
         ") " \
         "select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, " \
         "    t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, " \
