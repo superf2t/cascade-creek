@@ -2,10 +2,18 @@ import vars
 import utils
 import time
 import datetime
+import json
 
 #################
 # SQS FUNCTIONS #
 #################
+
+def insert_sqs_batch(entries):
+    sqs = get_sqs_place_queue()
+    utils.log('insert_sqs_batch', 'Inserting batch sqs')
+    sqs.send_messages(Entries=entries)
+    
+    return True
 
 def insert_sqs_listing_overview_message(place, page):
     time_start = time.time()
@@ -59,35 +67,41 @@ def insert_sqs_listing_detail_page(listing_id):
 # insert an sqs item to grab calendar information
 def insert_sqs_listing_calendar(listing_id):
 
-    sqs = get_sqs_place_queue()
-    
+    entry = []
+    entry.append(create_sqs_listing_calendar_entry(listing_id))
+    utils.log('insert_sqs_listing_calendar', 'Inserting calendar sqs for listing_id %s' % listing_id)
+    insert_sqs_batch(entry)
+
+    return True
+
+def create_sqs_listing_calendar_entry(listing_id):
+
     # get 3 months ago
     _month = (datetime.datetime.today() - datetime.timedelta(days=60)).month
     _year = (datetime.datetime.today() - datetime.timedelta(days=60)).year
     
     listing_url = 'https://www.airbnb.com/api/v2/calendar_months?key=%s&currency=USD&locale=en&listing_id=%s&month=%s&year=%s&count=3&_format=with_conditions' % (vars.airbnb_key, listing_id, _month, _year)
 
-    message_body = "calendar, listing id %s" % listing_id
-    message_attributes = {
-        'type': {
-            'StringValue': 'calendar',
-            'DataType': 'String'
-        },
-        'listing_id': {
-            'StringValue': str(listing_id),
-            'DataType': 'String'
-        },
-        'url': {
-            'StringValue': listing_url,
-            'DataType': 'String'
-        }
+    entry = {
+        "Id": str(listing_id),
+        "MessageBody": "calendar, listing id %s" % listing_id,
+        "MessageAttributes": {
+                            "type": {
+                                "StringValue": "calendar",
+                                "DataType": "String"
+                            },
+                            "listing_id": {
+                                "StringValue": str(listing_id),
+                                "DataType": "String"
+                            },
+                            "url": {
+                                "StringValue": listing_url,
+                                "DataType": "String"
+                            }
+                        }
     }
 
-    utils.log('insert_sqs_listing_calendar', 'Inserting calendar sqs for listing_id %s' % listing_id, listing_url)
-    sqs.send_message(MessageBody=message_body, MessageAttributes=message_attributes)
-
-    return True
-
+    return entry
 
 def insert_sqs_place_message(place):
     time_start = time.time()

@@ -312,10 +312,22 @@ def queue_calendar_sqs_for_place(place_id):
     else:
 
         # loop through listings and queue a calendar sqs
+        # batch 10 sqs inserts at a time, when loop breaks, send leftovers if they exist
         i = 0
+        entries = []
         for listing in listings:
-            utils_sqs.insert_sqs_listing_calendar(listing['i_listing_id'])
+
+            entries.append(utils_sqs.create_sqs_listing_calendar_entry(listing['i_listing_id']))
             i += 1
+
+            # if we've created 10 entries, then send 'em'
+            if i % 10 == 0:
+                utils_sqs.insert_sqs_batch(entries)
+                entries = []
+
+        #send what is left over
+        if len(entries) > 0:
+            utils_sqs.insert_sqs_batch(entries)
             
         utils.log('queue_calendar_sqs_for_place', 'Queued %s sqs calendar items' % i)
 
