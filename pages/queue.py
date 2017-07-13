@@ -56,8 +56,7 @@ def queue_all_calendar_for_place_id_page(place_id):
 # Non-page URL"s #
 ##################
 
-@queue.route("/_process_place_queue")
-@flask_login.login_required
+@queue.route("/_process_place_queue") #@flask_login.login_required
 def process_place_queue_api():
     utils.log('process_place_queue_api', 'Preparing to process queue')
     output = get_a_message_and_process_it()        
@@ -73,7 +72,11 @@ def process_place_queue_api():
 
 # do what the name says
 def get_a_message_and_process_it():
-    message = utils_sqs.get_one_sqs_place_message()
+    total_message_count = utils_sqs.get_sqs_message_count()
+    output = {
+        "message_count": total_message_count,
+        "message": ""
+    }
 
     # ? is this a place? Yes =
     #     get results
@@ -96,12 +99,14 @@ def get_a_message_and_process_it():
     #     get the availability
     #     save/update the availability
 
-    if message == '':
+    if total_message_count == '0':
         utils.log('get_a_message_and_process_it', 'No messages found in queue')
 
-        output = "No messages found in queue, exiting"
+        output['message'] = "No messages in queue, exiting"
 
     else:
+        message = utils_sqs.get_one_sqs_place_message()
+
         m = message.message_attributes
         m_type = m['type']['StringValue']
 
@@ -124,7 +129,7 @@ def get_a_message_and_process_it():
 
                 insert_four_new_place_quadrants(place)
                 utils_sqs.delete_sqs_place_message(message)
-                output = "More than 300 results for place '%s'. Queued 4 new searches." % m['name']['StringValue']
+                output['message'] = "More than 300 results for place '%s'. Queued 4 new searches." % m['name']['StringValue']
 
 
             # no = queue listing pages
@@ -137,12 +142,12 @@ def get_a_message_and_process_it():
 
                 utils_sqs.delete_sqs_place_message(message)
 
-                output = "less than 300, inserted %s pages into queue" % pages_inserted
+                output['message'] = "less than 300, inserted %s pages into queue" % pages_inserted
 
             else:
                 utils.log('get_a_message_and_process_it', 'Unknown value for results[results_json][metadata][listings_count]')
 
-                output = "Unknown value for results[results_json][metadata][listings_count]"
+                output['message'] = "Unknown value for results[results_json][metadata][listings_count]"
 
 
         # if this is a listing overview page
@@ -173,7 +178,7 @@ def get_a_message_and_process_it():
             time_end = time.time()
             utils.log('get_a_message_and_process_it', 'listing overview, saved %s listings' % listings_count, None, time_end - time_start)
 
-            output = 'Listing overview, saved %s places, queued individual listing pull' % listings_count
+            output['message'] = 'Listing overview, saved %s places, queued individual listing pull' % listings_count
 
         # if this is a listing
         #   tbd
@@ -183,10 +188,10 @@ def get_a_message_and_process_it():
             listing = utils_api.get_place_search(m['url']['StringValue'])
             if listing.get('error_type', 'no error') == 'no error':
                 utils_db.save_listing_detail(listing)
-                output = 'Listing details saved/updated, listing_id: %s' % listing['listing']['id']
+                output['message'] = 'Listing details saved/updated, listing_id: %s' % listing['listing']['id']
             else:
                 utils.log('get_a_message_and_process_it', 'error %s: %s' % (listing['error_type'], listing['error_message']), m['url']['StringValue'])
-                output = 'No permission to access listing detail for %s' % m['url']['StringValue']
+                output['message'] = 'No permission to access listing detail for %s' % m['url']['StringValue']
 
             utils_sqs.delete_sqs_place_message(message)
             
@@ -205,19 +210,20 @@ def get_a_message_and_process_it():
             #if error_type != "no_access"
             if calendar.get('error_type', 'no error') == 'no error':
                 utils_db.save_calendar_detail(listing_id, calendar['calendar_months'])
-                output = 'Processed a calendar request for listing id %s' % listing_id
+                output['message'] = 'Processed a calendar request for listing id %s' % listing_id
             else:
                 utils.log('get_a_message_and_process_it', 'error %s: %s' % (calendar['error_type'], calendar['error_message']), m['url']['StringValue'])
-                output = 'No permission to access calendar for listing id %s' % listing_id
+                output['message'] = 'No permission to access calendar for listing id %s' % listing_id
 
             utils_sqs.delete_sqs_place_message(message)            
 
         else:
             utils.log('get_a_message_and_process_it', 'Unknown value for message.message_attributes[type][StringValue]')
 
-            output = 'm_type == ??? not sure what kind of sqs message this was ???'
+            output['message'] = 'm_type == ??? not sure what kind of sqs message this was ???'
     
     return output
+
 
 
 #break a place up into 4 new quadrants, save each to the queue

@@ -180,3 +180,10 @@ def delete_sqs_place_message(message):
 
     message.delete()
 
+def get_sqs_message_count():
+
+    sqs = get_sqs_place_queue()
+    return sqs.attributes['ApproximateNumberOfMessages']
+
+
+

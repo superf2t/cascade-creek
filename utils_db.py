@@ -151,12 +151,28 @@ def get_places_history():
     utils.log('get_places_history', 'getting all place history')
 
 
-    response = utils.pg_sql("select p.s_google_place_id as place_id, p.s_name, p.dt_insert, " \
-                            "    max(c.dt_booking_date) as max_booking_date, count(distinct l.i_listing_id) as count_listings " \
-                            "from place p " \
-                            "    join listing l on p.s_google_place_id = l.s_google_place_id " \
-                            "    join calendar c on l.i_listing_id = c.i_listing_id " \
-                            "group by 1, 2, 3")
+    response = utils.pg_sql("""
+                                WITH c AS (
+                                    select 
+                                        l.s_google_place_id,
+                                        max(c.dt_booking_date) as dt_booking_date 
+                                    from calendar c
+                                        join listing l on c.i_listing_id = l.i_listing_id 
+                                    group by 1
+                                ),
+                                l AS (
+                                    select s_google_place_id, count(distinct i_listing_id) as count_i_listing_id from listing group by 1
+                                )
+                                select
+                                    p.s_google_place_id as place_id, 
+                                    p.s_name, 
+                                    p.dt_insert,
+                                    c.dt_booking_date as max_booking_date,
+                                    l.count_i_listing_id as count_listings
+                                from place p
+                                    join l on p.s_google_place_id = l.s_google_place_id
+                                    join c on l.s_google_place_id = c.s_google_place_id
+                            """)
     return response
 
 

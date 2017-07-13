@@ -46,29 +46,17 @@
             //call a page via jquery to do this
             $.getJSON('/queue/_process_place_queue')
                 .done(function(data) {
-                    $('#results').append('<p>' + data + '</p>');
+                    $('#results').append('<p>' + data.message + '<br/><small>Messages in queue: ' + data.message_count + '</p>');
 
-                    //is this data the same as the last data? (probably an error or no queue items left)
-                    if (data == "No messages found in queue, exiting" && data == last_data) {
-                        console.log('data == last_data, "' + data + '"');
-                        same_results += 1;
-                    }
-                    else {
-                        console.log('data != last_data');
-                        console.log('data = ' + data);
-                        console.log('last_data = ' + last_data);
-                        last_data = data;
-                        same_results = 0;
+                    //if there are no messages left in queue then stop looping
+                    if (data.message_count != '0') {
+                        if (same_results < 5) {
+                            setTimeout(function() {
+                                js_process_queue.loop_it();
+                            }, 3000);
+                        }
                     }
 
-                    console.log('count same_results: ' + same_results + '\n');
-
-                    //re-queue the next pull as long as we haven't had 5 of the same items in a row
-                    if (same_results < 5) {
-                        setTimeout(function() {
-                            js_process_queue.loop_it();
-                        }, 3000);
-                    }
                 })
                 .fail(function (err) {
                     $('#results').append('<p>' + err.message + '</p>');
