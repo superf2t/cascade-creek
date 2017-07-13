@@ -6,15 +6,11 @@ import uuid
 import datetime
 import psycopg2
 import psycopg2.extras
-from flask import current_app as app
 
-def pg_sql(sql, params = ()):
+def pg_sql(sql, params = None):
+
     conn = psycopg2.connect(vars.pg_conn_string)
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    if app.debug:
-        print '--- SQL ---'
-        print sql % params
-        print '------'
     cursor.execute(sql, params)
     conn.commit()
 
