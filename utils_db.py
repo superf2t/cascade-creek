@@ -394,3 +394,36 @@ def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
 
     return results
 
+def get_place_for_auto_queue():
+    # get places that:
+    #   * have not been queued up in over a month
+    #   * are in reverse descending order of size
+    #   * are modulo in rank equal to today's day of month
+    # this logic will assure that places will be equally spaced and places with
+    #   big listing counts will only potentially be paired with smaller ones
+    sql = """
+            WITH l AS (
+                select s_google_place_id, count(*) as listing_count from listing group by 1
+            ), c AS (
+                select 
+                    l.s_google_place_id,
+                    max(c.dt_booking_date) as max_dt_booking_date 
+                from calendar c
+                    join listing l on c.i_listing_id = l.i_listing_id 
+                group by 1
+            ), p AS (
+                select ROW_NUMBER() OVER (order by l.listing_count desc) as row_number, p.s_google_place_id, p.s_name, 
+                    l.listing_count, c.max_dt_booking_date
+                from place p
+                    join l on p.s_google_place_id = l.s_google_place_id
+                    join c on p.s_google_place_id = c.s_google_place_id
+            )
+            select * 
+            from p 
+            where row_number % CAST(date_part('day', current_date) as BIGINT) = 0
+                and max_dt_booking_date < current_date
+        """
+
+    results = utils.pg_sql(sql)
+    return results
+

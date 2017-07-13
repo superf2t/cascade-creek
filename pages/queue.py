@@ -48,11 +48,7 @@ def queue_all_calendar_page():
 @queue.route("/queue_all_calendar/<place_id>")
 @flask_login.login_required
 def queue_all_calendar_for_place_id_page(place_id):
-    # queue all existing calendar listings
-    count = utils_db.queue_calendar_sqs_for_place(place_id)
-    # queue the base geo search so we can get new places
-    place = utils_db.get_place(place_id)
-    utils_sqs.insert_sqs_place_message(place)
+    count = requeue_place(place_id)
     return redirect("/queue/queue_all_calendar?place_id=%s&count=%s" % (place_id, count))
 
 
@@ -68,11 +64,46 @@ def process_place_queue_api():
     return jsonify(output)
 
 
+# queues a place into sqs if necessary
+@queue.route("/_auto_queue_place")
+def auto_queue_place_api():
+    # if there are messages in the sqs queue then exit
+    total_message_count = utils_sqs.get_sqs_message_count()
+    output = {
+        "message": ''
+    }
+
+    # if there are currently no messages in the sqs queue then we can check
+    #   to see if there are any places that need to be inserted
+    if total_message_count == '0':
+
+        results = utils_db.get_place_for_auto_queue()
+        for result in results:
+            count = requeue_place(result['s_google_place_id'])
+            output['message'] = output['message'] + " Queued %s messages for place %s" % (count, result['s_google_place_id'])
+        
+    else:
+
+        output['message'] = "There are still messages from another job in the queue, exiting"
+
+    return jsonify(output)
+
+
+
 
 
 ####################
 # HELPER FUNCTIONS #
 ####################
+
+def requeue_place(place_id):
+    # queue all existing calendar listings
+    count = utils_db.queue_calendar_sqs_for_place(place_id)
+    # queue the base geo search so we can get new places
+    place = utils_db.get_place(place_id)
+    utils_sqs.insert_sqs_place_message(place)
+
+    return count
 
 # do what the name says
 def get_a_message_and_process_it():
@@ -348,8 +379,4 @@ def am_i_at_home():
         return True
     else:
         return False
-
-
-
-
 
