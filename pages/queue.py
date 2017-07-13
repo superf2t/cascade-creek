@@ -49,6 +49,7 @@ def queue_all_calendar_page():
 @flask_login.login_required
 def queue_all_calendar_for_place_id_page(place_id):
     count = utils_db.queue_calendar_sqs_for_place(place_id)
+    utils_sqs.insert_sqs_place_message(place)
     return redirect("/queue/queue_all_calendar?place_id=%s&count=%s" % (place_id, count))
 
 

@@ -20,7 +20,6 @@ def get_server():
 def get_queue():
     # get queue page
     server = get_server()
-    print server
     response = urllib2.urlopen(server + '/queue/_process_place_queue')
     data = json.loads(response.read())
 
