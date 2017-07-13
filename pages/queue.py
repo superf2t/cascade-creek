@@ -48,7 +48,10 @@ def queue_all_calendar_page():
 @queue.route("/queue_all_calendar/<place_id>")
 @flask_login.login_required
 def queue_all_calendar_for_place_id_page(place_id):
+    # queue all existing calendar listings
     count = utils_db.queue_calendar_sqs_for_place(place_id)
+    # queue the base geo search so we can get new places
+    place = utils_db.get_place(place_id)
     utils_sqs.insert_sqs_place_message(place)
     return redirect("/queue/queue_all_calendar?place_id=%s&count=%s" % (place_id, count))
 
