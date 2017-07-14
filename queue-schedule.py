@@ -2,6 +2,20 @@
 This file will call the process queue page once every 6 hours.
 If there are no messages in the queue, it will wait another 6 hours.
 If there are messages in the queue, it will wait 3 seconds and call it again.
+
+To run this scheduled task:
+
+    ssh redatavpn
+    cd redata/cascade-creek
+    screen
+    [enter]
+    python queue-schedule.py
+    [ctrl-a] [d]
+    
+To reconnect:
+
+    screen -r
+
 """
 
 import time
