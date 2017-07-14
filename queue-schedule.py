@@ -54,7 +54,7 @@ queue_place()
 process_queue()
 
 while True:
-    #print '...tick...'
+    print '...tick...'
     schedule.run_pending()
     time.sleep(3600) # check every hour whether any jobs need to run
 
