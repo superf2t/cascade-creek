@@ -43,7 +43,7 @@ def queue_place():
 
     return
 
-def process_queue():
+def process_queue(loop_count = 0):
     # get queue page
     server = get_server()
     response = urllib2.urlopen(server + '/queue/_process_place_queue')
@@ -51,9 +51,12 @@ def process_queue():
 
     print 'Message: %s\nMessages in Queue: %s\n-----' % (data['message'], data['message_count'])
 
-    if data['message_count'] != '0':
+    # this function kicks off every 10 minutes, so only call this recursive function
+    #   (a) if there are still messages in the queue, and
+    #   (b) less than the times it could execute in 10 minutes
+    if data['message_count'] != '0' and loop_count < 200:
         time.sleep(3)
-        process_queue()
+        process_queue(loop_count + 1)
 
 ###########################
 
@@ -61,8 +64,8 @@ def process_queue():
 schedule.clear()
 # check if a new place needs to be queued every 6 hours
 schedule.every(6).hours.do(queue_place)
-# kick off queue processing every 6 hours
-schedule.every(6).hours.do(process_queue)
+# kick off queue processing every 10 minutes
+schedule.every(10).minutes.do(process_queue)
 
 queue_place()
 process_queue()
@@ -70,5 +73,5 @@ process_queue()
 while True:
     print '...tick...'
     schedule.run_pending()
-    time.sleep(3600) # check every hour whether any jobs need to run
+    time.sleep(300) # check every 5 minutes whether any jobs need to run
 
