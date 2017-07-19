@@ -19,6 +19,7 @@ To reconnect:
 """
 
 import time
+import datetime
 import schedule
 import urllib2
 import json
@@ -44,19 +45,24 @@ def queue_place():
     return
 
 def process_queue(loop_count = 0):
-    # get queue page
-    server = get_server()
-    response = urllib2.urlopen(server + '/queue/_process_place_queue')
-    data = json.loads(response.read())
+    try:
+        # get queue page
+        server = get_server()
+        response = urllib2.urlopen(server + '/queue/_process_place_queue')
+        data = json.loads(response.read())
 
-    print 'Message: %s\nMessages in Queue: %s\n-----' % (data['message'], data['message_count'])
+        print 'Message: %s\nMessages in Queue: %s\n-----' % (data['message'], data['message_count'])
 
-    # this function kicks off every 10 minutes, so only call this recursive function
-    #   (a) if there are still messages in the queue, and
-    #   (b) less than the times it could execute in 10 minutes
-    if data['message_count'] != '0' and loop_count < 200:
-        time.sleep(3)
-        process_queue(loop_count + 1)
+        # this function kicks off every 10 minutes, so only call this recursive function
+        #   (a) if there are still messages in the queue, and
+        #   (b) less than the times it could execute in 10 minutes
+        if data['message_count'] != '0' and loop_count < 190:
+            time.sleep(3)
+            process_queue(loop_count + 1)
+    except:
+        e = sys.exc_info()[0]
+        print '--------- ERROR --------\n%s\n------------------' % e
+
 
 ###########################
 
@@ -67,11 +73,16 @@ schedule.every(6).hours.do(queue_place)
 # kick off queue processing every 10 minutes
 schedule.every(10).minutes.do(process_queue)
 
-queue_place()
-process_queue()
+#queue_place()
+#process_queue()
 
 while True:
-    print '...tick...'
-    schedule.run_pending()
+    print '...tick... %s' % datetime.datetime.now()
+    try:
+        schedule.run_pending()
+    except:
+        e = sys.exc_info()[0]
+        print '--------- ERROR --------\n%s\n------------------' % e
+
     time.sleep(300) # check every 5 minutes whether any jobs need to run
 
