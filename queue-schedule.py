@@ -18,6 +18,7 @@ To reconnect:
 
 """
 
+import sys
 import time
 import datetime
 import schedule
@@ -73,8 +74,8 @@ schedule.every(6).hours.do(queue_place)
 # kick off queue processing every 10 minutes
 schedule.every(10).minutes.do(process_queue)
 
-#queue_place()
-#process_queue()
+queue_place()
+process_queue()
 
 while True:
     print '...tick... %s' % datetime.datetime.now()
