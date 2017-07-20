@@ -420,7 +420,7 @@ def get_place_for_auto_queue():
             )
             select * 
             from p 
-            where row_number % CAST(date_part('day', current_date) as BIGINT) = 0
+            where row_number / CAST(date_part('day', current_date) as FLOAT) = 1.0
                 and max_dt_booking_date < current_date
         """
 
