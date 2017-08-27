@@ -68,7 +68,7 @@ class Place:
                         select distinct l.s_google_place_id, date_trunc('month', c.dt_booking_date)
                         from listing l
                             join calendar c on l.i_listing_id = c.i_listing_id
-                        where l.s_google_place_id = 'ChIJnaCSkq5AmYARh_c4dM7FxUA'
+                        where l.s_google_place_id = %s
                             and l.s_room_type = 'Entire home/apt'
                     ) t1
                     group by 1
@@ -78,7 +78,7 @@ class Place:
                     join t2 on t1.s_google_place_id = t2.s_google_place_id
                     join t3 on t1.s_google_place_id = t3.s_google_place_id
             """
-        params = (place_id, place_id)
+        params = (place_id, place_id, place_id)
         result = utils.pg_sql(sql, params)
         if len(result) > 0:
             self.place_id = result[0]['s_google_place_id']
