@@ -25,7 +25,12 @@
 {% endblock %}
 {% block body %}
 
-    <h1>{{ place.name }}</h1>
+    <h1>{{ place.name }} &nbsp;&nbsp;&nbsp;<small>
+        {% if current_user.id == 'travis' %}
+            <a href="/place/view_place/{{ place.place_id }}/queue" class="btn btn-primary">Scrape Airbnb</a></small>
+        {% endif %}
+    </h1>
+
     <div class="row" style="margin-bottom: 10px">
         <div class="col-sm-4">
             <h3><span id="listing_count">{{ place.listing_count }}</span> Listings</h3>

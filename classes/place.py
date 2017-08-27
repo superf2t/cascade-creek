@@ -75,8 +75,8 @@ class Place:
                 )
                 select t1.*, t2.listing_count, t2.last_update, t3.total_months_of_data
                 from t1
-                    join t2 on t1.s_google_place_id = t2.s_google_place_id
-                    join t3 on t1.s_google_place_id = t3.s_google_place_id
+                    left join t2 on t1.s_google_place_id = t2.s_google_place_id
+                    left join t3 on t1.s_google_place_id = t3.s_google_place_id
             """
         params = (place_id, place_id, place_id)
         result = utils.pg_sql(sql, params)
