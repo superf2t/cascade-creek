@@ -59,49 +59,52 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
 
     listings = []
     place_id
-    sql = "WITH t1 as ( " \
-        "    select l.s_google_place_id, l.i_listing_id, l.s_listing_name, l.s_lat, l.s_lng, l.d_star_rating, l.d_rate, l.i_reviews_count, l.i_person_capacity, " \
-        "        l.i_beds, l.i_bedrooms, l.d_bathrooms, l.s_picture_url, " \
-        "        count(*) as count_nights_total " \
-        "    from calendar c " \
-        "        join listing l on c.i_listing_id = l.i_listing_id " \
-        "    where l.s_google_place_id = %s " \
-        "        and l.s_room_type = 'Entire home/apt' " \
-        "        and l.s_room_type = 'Entire home/apt' " \
-        "        and l.d_star_rating >= 4.0 " \
-        "        and l.d_rate < 1000 " \
-        "        and c.dt_booking_date < now() " \
-        "        and CAST(s_lat AS NUMERIC) BETWEEN %s AND %s " \
-        "        and CAST(s_lng AS NUMERIC) BETWEEN %s AND %s " \
-        "    group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 " \
-        "    order by i_listing_id " \
-        "), t2 as (  " \
-        "    select t1.i_listing_id, count(c.*) as count_nights_booked, sum(c.i_price) as total_bookings,  " \
-        "        CAST(avg(c.i_price) as DECIMAL(6, 2)) as avg_nightly_price " \
-        "    from t1 " \
-        "        join calendar c on t1.i_listing_id = c.i_listing_id " \
-        "    where c.b_available = FALSE " \
-        "        and c.dt_booking_date < now() " \
-        "    group by 1 " \
-        "    order by 1 " \
-        "), t3 as ( " \
-        "    select t2.i_listing_id, " \
-        "       RANK() OVER (ORDER BY (t2.count_nights_booked / (t1.count_nights_total * 1.0))) as count_nights_rank, " \
-        "       RANK() OVER (ORDER BY (t2.total_bookings / t1.count_nights_total)) as total_bookings_rank " \
-        "    from t2 " \
-        "       join t1 on t2.i_listing_id = t1.i_listing_id " \
-        ") " \
-        "select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, " \
-        "    t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, " \
-        "    t1.i_beds, t1.i_bedrooms, t1.d_bathrooms, t1.s_picture_url, " \
-        "    t1.count_nights_total, t2.count_nights_booked, t2.total_bookings,  " \
-        "    CAST(t3.count_nights_rank / (select MAX(t3.count_nights_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  " \
-        "    CAST(t3.total_bookings_rank / (select MAX(t3.total_bookings_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as total_bookings_rank, " \
-        "    CAST((t2.total_bookings / t1.count_nights_total) * 30 AS INT) as avg_monthly_bookings " \
-        "from t1 " \
-        "    join t2 on t1.i_listing_id = t2.i_listing_id " \
-        "    join t3 on t2.i_listing_id = t3.i_listing_id " \
-        "order by t2.total_bookings desc"
+    sql = """
+        WITH t1 as ( 
+            select l.s_google_place_id, l.i_listing_id, l.s_listing_name, l.s_lat, l.s_lng, l.d_star_rating, l.d_rate, l.i_reviews_count, l.i_person_capacity, 
+                l.i_beds, l.i_bedrooms, l.d_bathrooms, l.s_picture_url, 
+                count(*) as count_nights_total 
+            from calendar c 
+                join listing l on c.i_listing_id = l.i_listing_id 
+            where l.s_google_place_id = %s 
+                and l.s_room_type = 'Entire home/apt' 
+                and l.s_room_type = 'Entire home/apt' 
+                and l.d_star_rating >= 4.0 
+                and l.d_rate < 1000 
+                and c.dt_booking_date < now() 
+                and CAST(s_lat AS NUMERIC) BETWEEN %s AND %s 
+                and CAST(s_lng AS NUMERIC) BETWEEN %s AND %s 
+            group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 
+            order by i_listing_id 
+        ), t2 as (  
+            select t1.i_listing_id, count(c.*) as count_nights_booked, sum(c.i_price) as total_bookings,  
+                CAST(avg(c.i_price) as DECIMAL(6, 2)) as avg_nightly_price 
+            from t1 
+                join calendar c on t1.i_listing_id = c.i_listing_id 
+            where c.b_available = FALSE 
+                and c.dt_booking_date < now() 
+            group by 1 
+            order by 1 
+        ), t3 as ( 
+            select t2.i_listing_id, 
+               RANK() OVER (ORDER BY (t2.count_nights_booked / (t1.count_nights_total * 1.0))) as count_nights_rank, 
+               RANK() OVER (ORDER BY (t2.total_bookings / t1.count_nights_total)) as total_bookings_rank 
+            from t2 
+               join t1 on t2.i_listing_id = t1.i_listing_id 
+        ) 
+        select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, 
+            t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, 
+            t1.i_beds, t1.i_bedrooms, t1.d_bathrooms, t1.s_picture_url, 
+            t1.count_nights_total, t2.count_nights_booked, t2.total_bookings,  
+            CAST(t3.count_nights_rank / (select MAX(t3.count_nights_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  
+            CAST(t3.total_bookings_rank / (select MAX(t3.total_bookings_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as total_bookings_rank, 
+            CAST((t2.count_nights_booked / (t1.count_nights_total * 1.0)) * 30 AS INT) as avg_num_nights,
+            CAST((t2.total_bookings / t1.count_nights_total) * 30 AS INT) as avg_monthly_bookings 
+        from t1 
+            join t2 on t1.i_listing_id = t2.i_listing_id 
+            join t3 on t2.i_listing_id = t3.i_listing_id 
+        order by t2.total_bookings desc
+    """
     params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
 
     results = utils.pg_sql(sql, params)
@@ -125,6 +128,7 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                 "total_bookings": str(listing['total_bookings']),
                 "count_nights_rank": str(listing['count_nights_rank']),
                 "total_bookings_rank": str(listing['total_bookings_rank']),
+                "avg_num_nights": str(listing['avg_num_nights']),
                 "avg_monthly_bookings": str(listing['avg_monthly_bookings'])
             });
 
