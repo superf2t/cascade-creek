@@ -356,39 +356,45 @@ def queue_calendar_sqs_for_place(place_id):
 def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
     utils.log('get_avg_bookings_by_bedrooms', 'Getting average bookings by bedroom for place_id %s' % place_id)
 
-    sql = "WITH t1 as ( " \
-        "    select i_bedrooms, l.i_listing_id, count(*) as count_nights_total, sum(i_price) as price_total " \
-        "    from calendar c " \
-        "        join listing l on c.i_listing_id = l.i_listing_id " \
-        "    where l.s_google_place_id = %s " \
-        "        and l.s_room_type = 'Entire home/apt' " \
-        "        and l.d_star_rating > 3 " \
-        "        and c.dt_booking_date < now() " \
-        "        and CAST(l.s_lat AS NUMERIC) BETWEEN %s AND %s " \
-        "        and CAST(l.s_lng AS NUMERIC) BETWEEN %s AND %s " \
-        "    group by 1, 2 " \
-        "), t2 as ( " \
-        "    select t1.i_bedrooms, t1.i_listing_id, t1.count_nights_total, t1.price_total,  " \
-        "        count(*) as count_nights_booked, " \
-        "        sum(c.i_price) as price_nights_booked, " \
-        "        (sum(c.i_price) / t1.count_nights_total) * 30 as avg_monthly_bookings " \
-        "    from t1  " \
-        "        join calendar c on t1.i_listing_id = c.i_listing_id " \
-        "    where c.b_available = False " \
-        "        and c.dt_booking_date < now() " \
-        "    group by 1, 2, 3, 4 " \
-        ") " \
-        "select i_bedrooms, count(*) as count_homes,  " \
-        "    CAST(sum(avg_monthly_bookings) / count(*) AS INT) as avg_bookings, " \
-        "    percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct " \
-        "from t2 " \
-        "group by 1 " \
-        "UNION ALL " \
-        "select 99, count(*) as count_homes, " \
-        "    CAST(sum(avg_monthly_bookings) / count(*) AS INT) as avg_bookings, " \
-        "    percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct " \
-        "from t2 " \
-        "order by 1"
+    sql = """
+        WITH t1 as (
+            select i_bedrooms, l.i_listing_id, count(*) as count_nights_total, sum(i_price) as price_total
+            from calendar c
+                join listing l on c.i_listing_id = l.i_listing_id
+            where l.s_google_place_id = %s
+                and l.s_room_type = 'Entire home/apt'
+                and l.d_star_rating > 3
+                and c.dt_booking_date < now()
+                and CAST(l.s_lat AS NUMERIC) BETWEEN %s AND %s
+                and CAST(l.s_lng AS NUMERIC) BETWEEN %s AND %s
+            group by 1, 2
+        ), t2 as (
+            select t1.i_bedrooms, t1.i_listing_id, t1.count_nights_total, t1.price_total, 
+                count(*) as count_nights_booked,
+                sum(c.i_price) as price_nights_booked,
+                (sum(c.i_price) / t1.count_nights_total) * 30 as avg_monthly_bookings
+            from t1 
+                join calendar c on t1.i_listing_id = c.i_listing_id
+            where c.b_available = False
+                and c.dt_booking_date < now()
+            group by 1, 2, 3, 4
+        )
+        select i_bedrooms, count(*) as count_homes, 
+            CAST(sum(avg_monthly_bookings) / count(*) AS INT) as avg_bookings,
+            CAST((sum(count_nights_booked) / sum(count_nights_total)) * 30 AS INT) as avg_num_nights,
+            CAST(sum(price_nights_booked) / sum(count_nights_booked) AS INT) as avg_price_per_night,
+            percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct
+        from t2
+        group by 1
+        UNION ALL
+        select 99, count(*) as count_homes,
+            CAST(sum(avg_monthly_bookings) / count(*) AS INT) as avg_bookings,
+            CAST((sum(count_nights_booked) / sum(count_nights_total)) * 30 AS INT) as avg_num_nights,
+            CAST(sum(price_nights_booked) / sum(count_nights_booked) AS INT) as avg_price_per_night,
+            percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct
+        from t2
+        order by 1
+    """
     params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
     results = utils.pg_sql(sql, params)
 
@@ -403,7 +409,9 @@ def get_place_for_auto_queue():
     #   big listing counts will only potentially be paired with smaller ones
     sql = """
             WITH l AS (
-                select s_google_place_id, count(*) as listing_count from listing group by 1
+                select s_google_place_id, count(*) as listing_count 
+                from listing 
+                group by 1
             ), c AS (
                 select 
                     l.s_google_place_id,
@@ -417,6 +425,7 @@ def get_place_for_auto_queue():
                 from place p
                     join l on p.s_google_place_id = l.s_google_place_id
                     join c on p.s_google_place_id = c.s_google_place_id
+                where b_active = True
             )
             select * 
             from p 
