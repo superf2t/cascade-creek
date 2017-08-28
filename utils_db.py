@@ -404,6 +404,67 @@ def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
 
     return results
 
+def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
+    sql = """
+        WITH t1 as (
+            select date_trunc('month', dt_booking_date) as booking_month, i_bedrooms, l.i_listing_id, 
+                count(*) as total_nights_for_month
+            from calendar c
+                join listing l on c.i_listing_id = l.i_listing_id
+            where l.s_google_place_id = %s
+                and l.s_room_type = 'Entire home/apt'
+                and l.d_star_rating > 3
+                and l.i_bedrooms <= 4
+                and c.dt_booking_date < now()
+                and CAST(l.s_lat AS NUMERIC) BETWEEN %s AND %s
+                and CAST(l.s_lng AS NUMERIC) BETWEEN %s AND %s
+            group by 1, 2, 3
+            order by 3, 1
+        ), t2 as (
+            select t1.booking_month, t1.i_bedrooms, t1.i_listing_id, t1.total_nights_for_month,
+                count(*) as nights_booked_for_month, sum(i_price) as price_booked_for_month
+            from t1
+                join calendar c on t1.i_listing_id = c.i_listing_id
+                                and t1.booking_month = date_trunc('month', c.dt_booking_date)
+            where c.b_available = False
+                and c.dt_booking_date < now()
+            group by 1, 2, 3, 4
+            order by 3, 1
+        )
+        select CAST(booking_month AS VARCHAR), 
+            i_bedrooms, 
+            CAST(sum(nights_booked_for_month) AS INT) as nights_booked_for_month,
+            CAST(sum(total_nights_for_month) AS INT) as total_nights_for_month, 
+            CAST((sum(nights_booked_for_month) / sum(total_nights_for_month)) * 30 AS INT) as average_nights_booked_per_month,
+            CAST(sum(price_booked_for_month) AS INT) as price_booked_for_month,
+            CAST(sum(price_booked_for_month) / sum(total_nights_for_month) AS INT) as average_price_per_night,
+            CAST(sum(price_booked_for_month) / count(distinct i_listing_id) AS INT) as average_bookings_per_month
+        from t2
+        group by 1, 2
+        order by 1, 2
+    """
+
+        # This is the average of all, which I'm not planning to use atm
+        # UNION ALL
+        # select CAST(booking_month AS VARCHAR), 
+        #     99, 
+        #     CAST(sum(total_nights_for_month) AS INT) as total_nights_for_month, 
+        #     CAST(sum(nights_booked_for_month) AS INT) as nights_booked_for_month,
+        #     CAST((sum(nights_booked_for_month) / sum(total_nights_for_month)) * 30 AS INT) as average_nights_booked_per_month,
+        #     CAST(sum(price_booked_for_month) AS INT) as price_booked_for_month,
+        #     CAST(sum(price_booked_for_month) / sum(total_nights_for_month) AS INT) as average_price_per_night,
+        #     CAST(sum(price_booked_for_month) / count(distinct i_listing_id) AS INT) as average_bookings_per_month
+        # from t2
+        # group by 1
+        # order by 2, 1
+    
+
+    params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
+    results = utils.pg_sql(sql, params)
+
+    return results
+
+
 def get_place_for_auto_queue():
     # get places that:
     #   * have not been queued up in over a month

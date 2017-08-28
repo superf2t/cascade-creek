@@ -76,9 +76,10 @@ def insert_sqs_listing_calendar(listing_id):
 
 def create_sqs_listing_calendar_entry(listing_id):
 
-    # get 3 months ago
-    _month = (datetime.datetime.today() - datetime.timedelta(days=60)).month
-    _year = (datetime.datetime.today() - datetime.timedelta(days=60)).year
+    # get 2 months ago
+    # ...used to be 3 months, but in some cases this causes airbnb to say "woah buddy, that's too far back, no soup for you"
+    _month = (datetime.datetime.today() - datetime.timedelta(days=35)).month
+    _year = (datetime.datetime.today() - datetime.timedelta(days=35)).year
     
     listing_url = 'https://www.airbnb.com/api/v2/calendar_months?key=%s&currency=USD&locale=en&listing_id=%s&month=%s&year=%s&count=3&_format=with_conditions' % (vars.airbnb_key, listing_id, _month, _year)
 

@@ -144,6 +144,15 @@ def submit_monthly_fee_form_api(place_id):
     return jsonify(result)
 
 
+@place.route("/_get_nights_and_bookings_by_month_api/<place_id>/<ne_lat>/<ne_lng>/<sw_lat>/<sw_lng>")
+@flask_login.login_required
+def get_nights_and_bookings_by_month_api(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
+    utils.log('get_nights_and_bookings_by_month_api', '')
+    nights_and_bookings_by_month = utils_db.get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng)
+
+    return jsonify(nights_and_bookings_by_month)
+
+
 ####################
 # HELPER FUNCTIONS #
 ####################

@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% block css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chartist.min.css') }}">
+    <script src="{{ url_for('static', filename='js/chartist.min.js') }}"></script>
+    
     <style>
     #map {
         height: 500px;
@@ -21,6 +24,13 @@
     .smallme tbody tr td { padding: 2px; }
 
     .bottom-line { border-bottom: solid 1px #cccccc; }
+
+    
+    .ct-series-a .ct-line, .ct-series-a .ct-point { stroke: {{ colors[0] }}; }
+    .ct-series-b .ct-line, .ct-series-b .ct-point { stroke: {{ colors[1] }}; }
+    .ct-series-c .ct-line, .ct-series-c .ct-point { stroke: {{ colors[2] }}; }
+    .ct-series-d .ct-line, .ct-series-d .ct-point { stroke: {{ colors[3] }}; }
+    
     </style>
 {% endblock %}
 {% block body %}
@@ -198,6 +208,12 @@
     </tr>
     </table>
 
+    <h3>Average Number of Nights Booked</h3>
+    <div id="average_number_of_nights_booked_chart"></div>
+
+    <h3>Average Price Per Night</h3>
+    <div id="average_price_per_night_chart"></div>
+    
     <form>
     <h3>Monthly Ownership Costs</h3>
     <div class="alert alert-success" style="display: none;" id="monthly_ownership_costs_message"></div>
@@ -551,6 +567,8 @@
 
                     updateAvgCostAnalysis();
 
+                    getMonthlyAveragePriceAndBookings(place_id, ne_lat, ne_lng, sw_lat, sw_lng);
+
                 });
             });
         });
@@ -616,8 +634,67 @@
             callback();
 
         });
+   
+    }
 
-        
+    nightsobj = [];
+    function getMonthlyAveragePriceAndBookings(place_id, ne_lat, ne_lng, sw_lat, sw_lng) {
+        $.getJSON('/place/_get_nights_and_bookings_by_month_api/' + place_id + '/' + ne_lat + '/' + ne_lng + '/' + sw_lat + '/' + sw_lng, function(nights_and_bookings_by_month) {
+
+            //First get unique list of number of bedrooms
+            //Then create an array of the dates for 1 bedroom
+            //Then create an array of arrays for each of 
+            //  average_nights_booked_per_month
+            //  average_price_per_night
+            
+            //create a unique array for bedrooms
+            const arr_bedrooms = [...new Set(nights_and_bookings_by_month.map(item => item.i_bedrooms))];
+            arr_bedrooms.sort();
+            //create a unique array for 1 bedroom dates
+            const arr_unique_dates = [...new Set(nights_and_bookings_by_month.map(item => item.booking_month))];
+
+            //create an array of arrays for average_nights_booked_per_month
+            var arr_avg_nights_per_month = [];
+            var arr_avg_price_per_month = [];
+
+            //loop through all bedrooms
+            arr_bedrooms.forEach(function(bedrooms_element)  {
+                arr_avg_nights_per_month.push([]);
+                arr_avg_price_per_month.push([]);
+
+                //loop through each date
+                arr_unique_dates.forEach(function(dates_element) {
+
+                    //get the one object with this combo of bedrooms and date
+                    let arr_temp = nights_and_bookings_by_month.find(
+                        x => x.i_bedrooms === bedrooms_element && x.booking_month === dates_element
+                    );                    
+
+                    //and populate the individual arrays
+                    arr_avg_nights_per_month[arr_avg_nights_per_month.length - 1].push(arr_temp.average_nights_booked_per_month);
+                    arr_avg_price_per_month[arr_avg_price_per_month.length - 1].push(arr_temp.average_price_per_night);
+                });
+            });
+
+
+            var data = {
+              // A labels array that can contain any sort of values
+              labels: arr_unique_dates,
+              // Our series array that contains series objects or in this case series data arrays
+              series: arr_avg_nights_per_month
+            };
+
+            new Chartist.Line('#average_number_of_nights_booked_chart', data);
+
+            var data = {
+              // A labels array that can contain any sort of values
+              labels: arr_unique_dates,
+              // Our series array that contains series objects or in this case series data arrays
+              series: arr_avg_price_per_month
+            };            
+            new Chartist.Line('#average_price_per_night_chart', data)
+        })
+
     }
 
     function getForSale(ne_lat, ne_lng, sw_lat, sw_lng, min_beds, max_beds, max_price, callback) {
