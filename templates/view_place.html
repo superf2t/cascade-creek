@@ -209,7 +209,7 @@
     </tr>
     </table>
 
-    <h3>Average Number of Nights Booked</h3>
+    <h3>Average Number of Nights Booked Per Month</h3>
     <div id="average_number_of_nights_booked_chart"></div>
 
     <h3>Average Price Per Night</h3>
@@ -669,11 +669,17 @@
                     //get the one object with this combo of bedrooms and date
                     let arr_temp = nights_and_bookings_by_month.find(
                         x => x.i_bedrooms === bedrooms_element && x.booking_month === dates_element
-                    );                    
+                    );
 
-                    //and populate the individual arrays
-                    arr_avg_nights_per_month[arr_avg_nights_per_month.length - 1].push(arr_temp.average_nights_booked_per_month);
-                    arr_avg_price_per_month[arr_avg_price_per_month.length - 1].push(arr_temp.average_price_per_night);
+                    try {
+                        //and populate the individual arrays
+                        arr_avg_nights_per_month[arr_avg_nights_per_month.length - 1].push(arr_temp.average_nights_booked_per_month);
+                        arr_avg_price_per_month[arr_avg_price_per_month.length - 1].push(arr_temp.average_price_per_night);
+                    }
+                    catch(err) {
+                        console.log('Error: ' + err.message);
+                    }
+                    
                 });
             });
 
