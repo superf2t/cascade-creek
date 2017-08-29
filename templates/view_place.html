@@ -678,6 +678,8 @@
                     }
                     catch(err) {
                         console.log('Error: ' + err.message);
+                        arr_avg_nights_per_month[arr_avg_nights_per_month.length - 1].push(null);
+                        arr_avg_price_per_month[arr_avg_price_per_month.length - 1].push(null);
                     }
                     
                 });
