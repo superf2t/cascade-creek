@@ -87,21 +87,6 @@ def user_loader(un):
     return user
 
 
-@login_manager.request_loader
-def request_loader(request):
-    un = request.form.get('un')
-    if un not in vars.users:
-        return
-
-    user = User()
-    user.id = un
-
-    # DO NOT ever store passwords in plaintext and always compare password
-    # hashes using constant-time comparison!
-    user.is_authenticated = request.form['pw'] == vars.users[un]['pw']
-
-    return user
-
 @login_manager.unauthorized_handler
 def unauthorized_handler():
     return redirect("/login")
