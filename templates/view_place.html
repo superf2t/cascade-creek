@@ -283,14 +283,14 @@
 
     {% raw %}
     <script type="text/x-tmpl" id="for_sale_houses_tmpl">
-        <tr id="{%= o.id %}" data-cap="{%= displayNumber(o.cap_rate_80, 1) %}" 
+        <tr id="{%= o.id %}" data-cap="{%= displayNumber(o.cap_rate_average, 1) %}" 
             onclick="google.maps.event.trigger(forSaleMarkers[{%= o.id %}], 'click');" 
             onmouseover="javascript:forSaleMarkers[{%= o.id %}].setAnimation(google.maps.Animation.BOUNCE);" 
             onmouseout="javascript:forSaleMarkers[{%= o.id %}].setAnimation(-1);;">
                 <td><img src="https://thumbs.trulia-cdn.com{%= o.photo_url %}" width="50" /></td>
                 <td>{%= o.bedrooms + '/' + o.bathrooms %}</td>
                 <td>{%= o.short_price %}</td>
-                <td>{%= displayNumber(o.cap_rate_80, 1, '%') %}</td>
+                <td>{%= displayNumber(o.cap_rate_average, 1, '%') %}</td>
         </tr>
     </script>
     {% endraw %}
@@ -757,6 +757,7 @@
 
                         marker.label.text = card.shortPrice + '(' + displayNumber(house_analysis.cap_rate_80, 2, "%") + ')';
                         marker.cap_rate_80 = house_analysis.cap_rate_80;
+                        marker.cap_rate_average = house_analysis.cap_rate_average;
 
                         marker.note = '<div>' +
                                         '<table width="100%"><tr>' +
@@ -773,7 +774,8 @@
                                             '<tr><th>Cost/mo:</th><td>' + displayNumber(house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
                                             '<tr><th>Net profit/mo:</th><td>' + displayNumber(avg_bookings_80 - house_analysis.op_ex_per_month, 0, "$") + '</td></tr>' +
                                             '<tr><th>ROI:</th><td>' + displayNumber(house_analysis.yearly_roi_80, 2, "%") + '</td></tr>' +
-                                            '<tr><th>Cap rate:</th><td>' + displayNumber(house_analysis.cap_rate_80, 2, "%") + '</td></tr>' +
+                                            '<tr><th>Cap rate (avg):</th><td>' + displayNumber(house_analysis.cap_rate_average, 2, "%") + '</td></tr>' +
+                                            '<tr><th>Cap rate (80th%):</th><td>' + displayNumber(house_analysis.cap_rate_80, 2, "%") + '</td></tr>' +
                                             '<tr><th colspan="2" align="right"><a href="#modal_house_analysis" data-toggle="modal">Details</a></th></tr>' +
                                             '</table>' +
                                         '</td>' +
@@ -814,8 +816,9 @@
     function populateScroller(marker) {
         //$('#for_sale_listings')
         //tmpl("for_sale_houses_tmpl", marker)
-        let cap_rate = marker.cap_rate_80;
-
+        //let cap_rate = marker.cap_rate_80;
+        let cap_rate = marker.cap_rate_average;
+        
         //get data attribute values of existing tr's and read into array
         var dataList = $("#for_sale_listings tr[data-cap]").map(function() {
             return parseFloat($(this).data("cap"), 1);
@@ -1119,7 +1122,8 @@
                 "monthly_net_80": monthly_net_80, 
                 "yearly_net_80": yearly_net_80,
                 "yearly_roi_80": yearly_roi_80,
-                "cap_rate_80": cap_rate_80
+                "cap_rate_80": cap_rate_80,
+                "cap_rate_average": cap_rate_average
             }
 
             if (display_it) {
