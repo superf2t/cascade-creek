@@ -62,7 +62,7 @@ def process_queue(loop_count = 0):
             process_queue(loop_count + 1)
     except:
         e = sys.exc_info()[0]
-        print '--------- ERROR --------\n%s\n------------------' % e
+        print '--------- ERROR IN process_queue --------\n%s\n------------------' % e
 
 
 ###########################
@@ -83,7 +83,7 @@ while True:
         schedule.run_pending()
     except:
         e = sys.exc_info()[0]
-        print '--------- ERROR --------\n%s\n------------------' % e
+        print '--------- ERROR IN SCHEDULE RUNNER --------\n%s\n------------------' % e
 
     time.sleep(300) # check every 5 minutes whether any jobs need to run
 
