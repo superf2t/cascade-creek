@@ -71,6 +71,7 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                 and l.s_room_type = 'Entire home/apt' 
                 and l.d_star_rating >= 4.0 
                 and l.d_rate < 1000 
+                and c.i_price < 1000
                 and c.dt_booking_date < now() 
                 and CAST(s_lat AS NUMERIC) BETWEEN %s AND %s 
                 and CAST(s_lng AS NUMERIC) BETWEEN %s AND %s 
@@ -83,6 +84,7 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                 join calendar c on t1.i_listing_id = c.i_listing_id 
             where c.b_available = FALSE 
                 and c.dt_booking_date < now() 
+                and c.i_price < 1000
             group by 1 
             order by 1 
         ), t3 as ( 
@@ -369,6 +371,7 @@ def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                 and l.s_room_type = 'Entire home/apt'
                 and l.d_star_rating > 3
                 and c.dt_booking_date < now()
+                and c.i_price < 1000
                 and CAST(l.s_lat AS NUMERIC) BETWEEN %s AND %s
                 and CAST(l.s_lng AS NUMERIC) BETWEEN %s AND %s
             group by 1, 2
@@ -381,6 +384,7 @@ def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                 join calendar c on t1.i_listing_id = c.i_listing_id
             where c.b_available = False
                 and c.dt_booking_date < now()
+                and c.i_price < 1000
             group by 1, 2, 3, 4
         )
         select i_bedrooms, count(*) as count_homes, 
@@ -416,6 +420,7 @@ def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                 and l.d_star_rating > 3
                 and l.i_bedrooms <= 4
                 and c.dt_booking_date < now()
+                and c.i_price < 1000
                 and CAST(l.s_lat AS NUMERIC) BETWEEN %s AND %s
                 and CAST(l.s_lng AS NUMERIC) BETWEEN %s AND %s
             group by 1, 2, 3
@@ -428,6 +433,7 @@ def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                                 and t1.booking_month = date_trunc('month', c.dt_booking_date)
             where c.b_available = False
                 and c.dt_booking_date < now()
+                and c.i_price < 1000
             group by 1, 2, 3, 4
             order by 3, 1
         )
