@@ -3,3 +3,5 @@ flask_login==0.4.0
 schedule==0.4.3
 psycopg2==2.7.3
 boto3==1.4.5
+pyOpenSSL==16.2.0
+gunicorn
