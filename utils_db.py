@@ -437,7 +437,7 @@ def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             group by 1, 2, 3, 4
             order by 3, 1
         )
-        select CAST(booking_month AS VARCHAR), 
+        select to_char(booking_month, 'YYYY-mm') as booking_month, 
             i_bedrooms, 
             CAST(sum(nights_booked_for_month) AS INT) as nights_booked_for_month,
             CAST(sum(total_nights_for_month) AS INT) as total_nights_for_month, 

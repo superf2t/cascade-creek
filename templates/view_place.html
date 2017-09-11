@@ -649,8 +649,7 @@
             //  average_price_per_night
             
             //create a unique array for bedrooms
-            const arr_bedrooms = [...new Set(nights_and_bookings_by_month.map(item => item.i_bedrooms))];
-            arr_bedrooms.sort();
+            const arr_bedrooms = [0, 1, 2, 3, 4, 5]
             //create a unique array for 1 bedroom dates
             const arr_unique_dates = [...new Set(nights_and_bookings_by_month.map(item => item.booking_month))];
 
