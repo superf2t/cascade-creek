@@ -15,10 +15,10 @@
             <th>Place</th>
             <th class="text-right">Listings</th>
             <th class="text-right">Created Date</th>
-            <th class="text-right">Last Calendar Date</th>
+            <th class="text-right">Last Updated</th>
         </tr>
         {% for place in places %}
-            <tr>
+            <tr{% if not place.is_place_active %} class="danger"{% endif %}>
                 <td><a href="/queue/queue_all_calendar/{{ place.place_id }}">{{ place.place_id }}</a></td>
                 <td>{{ place.s_name }}</td>
                 <td class="text-right">{{ place.count_listings }}</td>

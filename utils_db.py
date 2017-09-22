@@ -161,7 +161,7 @@ def get_places_history():
                                 WITH c AS (
                                     select 
                                         l.s_google_place_id,
-                                        max(c.dt_booking_date) as dt_booking_date 
+                                        CAST(max(c.dt_insert) as DATE) as dt_booking_date 
                                     from calendar c
                                         join listing l on c.i_listing_id = l.i_listing_id 
                                     group by 1
@@ -174,7 +174,8 @@ def get_places_history():
                                     p.s_name, 
                                     p.dt_insert,
                                     c.dt_booking_date as max_booking_date,
-                                    l.count_i_listing_id as count_listings
+                                    l.count_i_listing_id as count_listings,
+                                    p.b_active as is_place_active
                                 from place p
                                     join l on p.s_google_place_id = l.s_google_place_id
                                     join c on l.s_google_place_id = c.s_google_place_id
