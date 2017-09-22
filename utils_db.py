@@ -481,19 +481,23 @@ def get_place_for_auto_queue():
     #   big listing counts will only potentially be paired with smaller ones
     sql = """
             WITH l AS (
-                select s_google_place_id, count(*) as listing_count 
-                from listing 
+                select l.s_google_place_id, count(*) as listing_count 
+                from listing l
+                    join place p on l.s_google_place_id = p.s_google_place_id
+                where p.b_active = True
                 group by 1
             ), c AS (
                 select 
                     l.s_google_place_id,
-                    max(c.dt_booking_date) as max_dt_booking_date 
+                    max(c.dt_insert) as last_update 
                 from calendar c
                     join listing l on c.i_listing_id = l.i_listing_id 
+                    join place p on l.s_google_place_id = p.s_google_place_id
+                   where p.b_active = True
                 group by 1
             ), p AS (
                 select ROW_NUMBER() OVER (order by l.listing_count desc) as row_number, p.s_google_place_id, p.s_name, 
-                    l.listing_count, c.max_dt_booking_date
+                    l.listing_count, c.last_update
                 from place p
                     join l on p.s_google_place_id = l.s_google_place_id
                     join c on p.s_google_place_id = c.s_google_place_id
@@ -502,7 +506,7 @@ def get_place_for_auto_queue():
             select * 
             from p 
             where row_number / CAST(date_part('day', current_date) as FLOAT) = 1.0
-                and max_dt_booking_date < current_date
+                and last_update < (current_date - interval '1 month')
         """
 
     results = utils.pg_sql(sql)
