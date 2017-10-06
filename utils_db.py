@@ -93,19 +93,23 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                RANK() OVER (ORDER BY (t2.total_bookings / t1.count_nights_total)) as total_bookings_rank 
             from t2 
                join t1 on t2.i_listing_id = t1.i_listing_id 
+        ), t4 as (
+            select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, 
+                t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, 
+                t1.i_beds, t1.i_bedrooms, t1.d_bathrooms, t1.s_picture_url, 
+                t1.count_nights_total, t2.count_nights_booked, t2.total_bookings,  
+                CAST(t3.count_nights_rank / (select MAX(t3.count_nights_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  
+                CAST(t3.total_bookings_rank / (select MAX(t3.total_bookings_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as total_bookings_rank, 
+                CAST((t2.count_nights_booked / (t1.count_nights_total * 1.0)) * 30 AS INT) as avg_num_nights,
+                CAST((t2.total_bookings / t1.count_nights_total) * 30 AS INT) as avg_monthly_bookings 
+            from t1 
+                join t2 on t1.i_listing_id = t2.i_listing_id 
+                join t3 on t2.i_listing_id = t3.i_listing_id 
+            order by t2.total_bookings desc
         ) 
-        select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, 
-            t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, 
-            t1.i_beds, t1.i_bedrooms, t1.d_bathrooms, t1.s_picture_url, 
-            t1.count_nights_total, t2.count_nights_booked, t2.total_bookings,  
-            CAST(t3.count_nights_rank / (select MAX(t3.count_nights_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  
-            CAST(t3.total_bookings_rank / (select MAX(t3.total_bookings_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as total_bookings_rank, 
-            CAST((t2.count_nights_booked / (t1.count_nights_total * 1.0)) * 30 AS INT) as avg_num_nights,
-            CAST((t2.total_bookings / t1.count_nights_total) * 30 AS INT) as avg_monthly_bookings 
-        from t1 
-            join t2 on t1.i_listing_id = t2.i_listing_id 
-            join t3 on t2.i_listing_id = t3.i_listing_id 
-        order by t2.total_bookings desc
+        select * 
+        from t4
+        where avg_num_nights < 30 --get rid of the peeps who just block all their dates all the time        
     """
     params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
 
@@ -186,8 +190,8 @@ def get_places_history():
 def insert_place(place):
     utils.log('insert_place', 'Inserting place_id: %s, name %s' % (place.place_id, place.name))
 
-    sql = "insert into place (s_google_place_id, s_name, s_lat, s_lng, s_ne_lat, s_ne_lng, s_sw_lat, s_sw_lng, dt_insert) " \
-            "values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    sql = "insert into place (s_google_place_id, s_name, s_lat, s_lng, s_ne_lat, s_ne_lng, s_sw_lat, s_sw_lng, dt_insert, b_active) " \
+            "values (%s, %s, %s, %s, %s, %s, %s, %s, %s, TRUE)"
     params = (place.place_id, place.name, place.lat, place.lng, place.ne_lat, place.ne_lng, place.sw_lat, place.sw_lng, place.insert_date)
     utils.pg_sql(sql, params)
 
@@ -444,7 +448,7 @@ def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             CAST(sum(total_nights_for_month) AS INT) as total_nights_for_month, 
             CAST((sum(nights_booked_for_month) / sum(total_nights_for_month)) * 30 AS INT) as average_nights_booked_per_month,
             CAST(sum(price_booked_for_month) AS INT) as price_booked_for_month,
-            CAST(sum(price_booked_for_month) / sum(total_nights_for_month) AS INT) as average_price_per_night,
+            CAST(sum(price_booked_for_month) / sum(nights_booked_for_month) AS INT) as average_price_per_night,
             CAST(sum(price_booked_for_month) / count(distinct i_listing_id) AS INT) as average_bookings_per_month
         from t2
         group by 1, 2
