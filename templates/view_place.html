@@ -47,7 +47,7 @@
             <h3><span id="listing_count">{{ place.listing_count }}</span> Listings</h3>
             {{ place.total_months_of_data }} months of data, last updated on {{ place.last_update }}
         </div>
-        <div class="col-sm-8">
+        <div class="col-sm-4">
             <br />
             <small>Filter "For Sale" results:</small>
             <form class="form-inline">
@@ -84,6 +84,12 @@
                 <option value="*" selected>Max price</option>
                 </select>
             </form>
+        </div>
+        <div class="col-sm-4">
+            <br />
+            <small>Toggle heatmap:</small>
+            <br />
+            <button onclick="toggleHeatmap()" class="btn btn-default">Toggle Heatmap</button>
         </div>
     </div>
 
@@ -505,6 +511,7 @@
 
     <script>
     var map = null;
+    var heatmap = null;
     var avg_bookings_by_bedrooms = [];
     var airbnbMarkers = [];
     var forSaleMarkers = [];
@@ -513,6 +520,11 @@
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
             zoom: 3
+        });
+
+        heatmap = new google.maps.visualization.HeatmapLayer({
+            map: null,
+            radius: 20
         });
 
         var rectangle = new google.maps.Rectangle({
@@ -555,7 +567,7 @@
     }
 
     function updateMap(place_id, ne_lat, ne_lng, sw_lat, sw_lng) {
-        clearMarkers();
+        deleteMarkers();
 
         getAvgBookingsByBedroomByLat(place_id, ne_lat, ne_lng, sw_lat, sw_lng, function() {
 
@@ -600,6 +612,8 @@
                     clickable: true,
                     icon: getCircle(listings[i]['count_nights_rank'], listings[i]['total_bookings_rank'], getColor(listings[i]['bedrooms']))
                 });
+                marker.avg_monthly_bookings = listings[i]['avg_monthly_bookings'];
+                marker.bedrooms = listings[i]['bedrooms'];
                 marker.note = '<div>' + 
                                 '<table width="100%"><tr>' +
                                 '<td align="center" style="padding-right: 20px;">' +
@@ -886,7 +900,7 @@
         let ne = map.getBounds().getNorthEast();
         let sw = map.getBounds().getSouthWest();
 
-        clearForSaleMarkers();
+        deleteForSaleMarkers();
         getForSale(ne.lat(), ne.lng(), sw.lat(), sw.lng(), min_beds, max_beds, max_price, function() {
 
             updateAvgCostAnalysis();
@@ -908,22 +922,40 @@
         };
     }
 
-    function clearMarkers() {
-        clearForSaleMarkers();
-        clearAirbnbMarkers();
+    function deleteMarkers() {
+        deleteForSaleMarkers();
+        deleteAirbnbMarkers();
     }
-    function clearForSaleMarkers() {
+    function deleteForSaleMarkers() {
         for (var i = 0; i < forSaleMarkers.length; i++) {
             forSaleMarkers[i].setMap(null);
         }
         forSaleMarkers = [];
     }
-    function clearAirbnbMarkers() {
-        for (var i = 0; i < airbnbMarkers.length; i++) {
-            airbnbMarkers[i].setMap(null);
-        }
+    function deleteAirbnbMarkers() {
+        
+        setMapOnAll(null);
         airbnbMarkers = [];
+
+        //clear heatmap
+        heatmap.setMap(null);
     }
+    // Sets the map on all markers in the array.
+    function setMapOnAll(map) {
+        //clear markers from map
+        for (var i = 0; i < airbnbMarkers.length; i++) {
+            airbnbMarkers[i].setMap(map);
+        }
+    }
+    // Removes the markers from the map, but keeps them in the array.
+    function clearMarkers() {
+        setMapOnAll(null);
+    }
+    // Shows any markers currently in the array.
+    function showMarkers() {
+        setMapOnAll(map);
+    }
+
 
     function clearCostAnalysis(bedroom_count) {
         $('#bedrooms_' + bedroom_count + '_count_homes').html('-');
@@ -1310,9 +1342,43 @@
         
     }
 
+    function getHeatmapPoints() {
+        var heatMapData = []
+        for (i=0; i<airbnbMarkers.length; i++) {
+            if (airbnbMarkers[i].bedrooms == 2) {
+                heatMapData.push({
+                    location: airbnbMarkers[i].getPosition(),
+                    weight: airbnbMarkers[i].avg_monthly_bookings
+                });
+            }
+
+        }
+
+        return heatMapData;
+    }
+    function toggleHeatmap() {
+
+        //if heatmap is not on, clear markers, show heatmap
+        //if heatmap is on, clear heatmap, show markers
+        if (heatmap.getMap()) {
+            heatmap.setMap(null);
+            showMarkers();
+        }
+        else {
+            var heatMapData = getHeatmapPoints();
+            clearMarkers();
+
+            heatmap.setData(heatMapData);        
+            heatmap.setMap(map);
+        }
+
+        
+
+    }
+
     </script>
     
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key_js_map }}">
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key_js_map }}&libraries=visualization">
     </script>
     <script>
     $(document).ready(function() {
