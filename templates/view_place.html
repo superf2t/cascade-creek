@@ -220,6 +220,9 @@
 
     <h3>Average Price Per Night</h3>
     <div id="average_price_per_night_chart"></div>
+
+    <h3>Number of Units on Market</h3>
+    <div id="total_units_on_market_chart"></div>
     
     <form>
     <h3>Monthly Ownership Costs</h3>
@@ -670,11 +673,13 @@
             //create an array of arrays for average_nights_booked_per_month
             var arr_avg_nights_per_month = [];
             var arr_avg_price_per_month = [];
+            var arr_total_units_on_market = [];
 
             //loop through all bedrooms
             arr_bedrooms.forEach(function(bedrooms_element)  {
                 arr_avg_nights_per_month.push([]);
                 arr_avg_price_per_month.push([]);
+                arr_total_units_on_market.push([]);
 
                 //loop through each date
                 arr_unique_dates.forEach(function(dates_element) {
@@ -688,11 +693,13 @@
                         //and populate the individual arrays
                         arr_avg_nights_per_month[arr_avg_nights_per_month.length - 1].push(arr_temp.average_nights_booked_per_month);
                         arr_avg_price_per_month[arr_avg_price_per_month.length - 1].push(arr_temp.average_price_per_night);
+                        arr_total_units_on_market[arr_total_units_on_market.length - 1].push(arr_temp.total_units_on_market);
                     }
                     catch(err) {
                         console.log('Error: ' + err.message);
                         arr_avg_nights_per_month[arr_avg_nights_per_month.length - 1].push(null);
                         arr_avg_price_per_month[arr_avg_price_per_month.length - 1].push(null);
+                        arr_total_units_on_market[arr_total_units_on_market.length -1].push(null);
                     }
                     
                 });
@@ -714,8 +721,14 @@
               // Our series array that contains series objects or in this case series data arrays
               series: arr_avg_price_per_month
             };            
-            new Chartist.Line('#average_price_per_night_chart', data)
-        })
+            new Chartist.Line('#average_price_per_night_chart', data);
+
+            var data = {
+                labels: arr_unique_dates,
+                series: arr_total_units_on_market
+            }
+            new Chartist.Line('#total_units_on_market_chart', data);
+        });
 
     }
 

@@ -69,7 +69,7 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             where l.s_google_place_id = %s 
                 and l.s_room_type = 'Entire home/apt' 
                 and l.s_room_type = 'Entire home/apt' 
-                and l.d_star_rating >= 4.0 
+                and l.d_star_rating >= 3.0 
                 and l.d_rate < 1000 
                 and c.i_price < 1000
                 and c.dt_booking_date < now() 
@@ -449,7 +449,8 @@ def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             CAST((sum(nights_booked_for_month) / sum(total_nights_for_month)) * 30 AS INT) as average_nights_booked_per_month,
             CAST(sum(price_booked_for_month) AS INT) as price_booked_for_month,
             CAST(sum(price_booked_for_month) / sum(nights_booked_for_month) AS INT) as average_price_per_night,
-            CAST(sum(price_booked_for_month) / count(distinct i_listing_id) AS INT) as average_bookings_per_month
+            CAST(sum(price_booked_for_month) / count(distinct i_listing_id) AS INT) as average_bookings_per_month,
+            COUNT(DISTINCT i_listing_id) as total_units_on_market
         from t2
         group by 1, 2
         order by 1, 2
