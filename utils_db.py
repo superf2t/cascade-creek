@@ -61,14 +61,14 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
     place_id
     sql = """
         WITH t1 as ( 
+            --GET ALL LISTING DETAILS in this geo with entire place, established star rating, non-outrageous price
             select l.s_google_place_id, l.i_listing_id, l.s_listing_name, l.s_lat, l.s_lng, l.d_star_rating, l.d_rate, l.i_reviews_count, l.i_person_capacity, 
                 l.i_beds, l.i_bedrooms, l.d_bathrooms, l.s_picture_url, 
                 count(*) as count_nights_total 
             from calendar c 
                 join listing l on c.i_listing_id = l.i_listing_id 
             where l.s_google_place_id = %s 
-                and l.s_room_type = 'Entire home/apt' 
-                and l.s_room_type = 'Entire home/apt' 
+                and l.s_room_type = 'Entire home/apt'
                 and l.d_star_rating >= 3.0 
                 and l.d_rate < 1000 
                 and c.i_price < 1000
@@ -78,6 +78,7 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             group by 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 
             order by i_listing_id 
         ), t2 as (  
+            --sum t1 to get number of nights booked, revenue, avg price, for each individual listing
             select t1.i_listing_id, count(c.*) as count_nights_booked, sum(c.i_price) as total_bookings,  
                 CAST(avg(c.i_price) as DECIMAL(6, 2)) as avg_nightly_price 
             from t1 
@@ -88,28 +89,27 @@ def get_listings(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             group by 1 
             order by 1 
         ), t3 as ( 
+            --order t2 results by number of nights booked and total revenue so we can show big/small, opaque/transparent circles on UI
             select t2.i_listing_id, 
                RANK() OVER (ORDER BY (t2.count_nights_booked / (t1.count_nights_total * 1.0))) as count_nights_rank, 
                RANK() OVER (ORDER BY (t2.total_bookings / t1.count_nights_total)) as total_bookings_rank 
             from t2 
                join t1 on t2.i_listing_id = t1.i_listing_id 
-        ), t4 as (
-            select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, 
-                t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, 
-                t1.i_beds, t1.i_bedrooms, t1.d_bathrooms, t1.s_picture_url, 
-                t1.count_nights_total, t2.count_nights_booked, t2.total_bookings,  
-                CAST(t3.count_nights_rank / (select MAX(t3.count_nights_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  
-                CAST(t3.total_bookings_rank / (select MAX(t3.total_bookings_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as total_bookings_rank, 
-                CAST((t2.count_nights_booked / (t1.count_nights_total * 1.0)) * 30 AS INT) as avg_num_nights,
-                CAST((t2.total_bookings / t1.count_nights_total) * 30 AS INT) as avg_monthly_bookings 
-            from t1 
-                join t2 on t1.i_listing_id = t2.i_listing_id 
-                join t3 on t2.i_listing_id = t3.i_listing_id 
-            order by t2.total_bookings desc
-        ) 
-        select * 
-        from t4
-        where avg_num_nights < 30 --get rid of the peeps who just block all their dates all the time        
+        )
+        --combine results of t2/t3 and calculate ranks, averages and return results
+        select t1.i_listing_id, t1.s_lat, t1.s_lng, t1.s_listing_name, t1.d_star_rating, 
+            t1.i_reviews_count, t1.d_rate, t1.i_person_capacity, 
+            t1.i_beds, t1.i_bedrooms, t1.d_bathrooms, t1.s_picture_url, 
+            t1.count_nights_total, t2.count_nights_booked, t2.total_bookings,  
+            CAST(t3.count_nights_rank / (select MAX(t3.count_nights_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as count_nights_rank,  
+            CAST(t3.total_bookings_rank / (select MAX(t3.total_bookings_rank) * 1.0 from t3) * 100 AS DECIMAL(9, 0)) as total_bookings_rank, 
+            CAST((t2.count_nights_booked / (t1.count_nights_total * 1.0)) * 30 AS INT) as avg_num_nights,
+            CAST((t2.total_bookings / t1.count_nights_total) * 30 AS INT) as avg_monthly_bookings 
+        from t1 
+            join t2 on t1.i_listing_id = t2.i_listing_id 
+            join t3 on t2.i_listing_id = t3.i_listing_id 
+        where t2.count_nights_booked < t1.count_nights_total --get rid of the peeps who just block all their dates all the time        
+        order by t2.total_bookings desc
     """
     params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
 
@@ -398,6 +398,7 @@ def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             CAST(sum(price_nights_booked) / sum(count_nights_booked) AS INT) as avg_price_per_night,
             percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct
         from t2
+        where count_nights_booked < count_nights_total
         group by 1
         UNION ALL
         select 99, count(*) as count_homes,
@@ -406,6 +407,7 @@ def get_avg_bookings_by_bedrooms(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             CAST(sum(price_nights_booked) / sum(count_nights_booked) AS INT) as avg_price_per_night,
             percentile_disc(0.8) WITHIN GROUP (ORDER BY avg_monthly_bookings) as eighty_pct
         from t2
+        where count_nights_booked < count_nights_total --remove total blockers
         order by 1
     """
     params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
@@ -422,9 +424,10 @@ def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
                 join listing l on c.i_listing_id = l.i_listing_id
             where l.s_google_place_id = %s
                 and l.s_room_type = 'Entire home/apt'
-                and l.d_star_rating > 3
+                and l.d_star_rating >= 3.0
                 and l.i_bedrooms <= 4
                 and c.dt_booking_date < now()
+                and l.d_rate < 1000 
                 and c.i_price < 1000
                 and CAST(l.s_lat AS NUMERIC) BETWEEN %s AND %s
                 and CAST(l.s_lng AS NUMERIC) BETWEEN %s AND %s
@@ -452,24 +455,10 @@ def get_nights_and_bookings_by_month(place_id, ne_lat, ne_lng, sw_lat, sw_lng):
             CAST(sum(price_booked_for_month) / count(distinct i_listing_id) AS INT) as average_bookings_per_month,
             COUNT(DISTINCT i_listing_id) as total_units_on_market
         from t2
+        where nights_booked_for_month < total_nights_for_month --filter out total blockers
         group by 1, 2
         order by 1, 2
-    """
-
-        # This is the average of all, which I'm not planning to use atm
-        # UNION ALL
-        # select CAST(booking_month AS VARCHAR), 
-        #     99, 
-        #     CAST(sum(total_nights_for_month) AS INT) as total_nights_for_month, 
-        #     CAST(sum(nights_booked_for_month) AS INT) as nights_booked_for_month,
-        #     CAST((sum(nights_booked_for_month) / sum(total_nights_for_month)) * 30 AS INT) as average_nights_booked_per_month,
-        #     CAST(sum(price_booked_for_month) AS INT) as price_booked_for_month,
-        #     CAST(sum(price_booked_for_month) / sum(total_nights_for_month) AS INT) as average_price_per_night,
-        #     CAST(sum(price_booked_for_month) / count(distinct i_listing_id) AS INT) as average_bookings_per_month
-        # from t2
-        # group by 1
-        # order by 2, 1
-    
+    """    
 
     params = (place_id, sw_lat, ne_lat, sw_lng, ne_lng)
     results = utils.pg_sql(sql, params)
