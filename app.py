@@ -29,7 +29,14 @@ login_manager.init_app(app)
 def hello_world_page():
     utils.log('hello_world_page', 'page load')
     places = utils_db.get_places()
-    return render_template("home.html", places=places, count=len(places), google_api_key_js_map=vars.google_api_key_js_map)
+
+    queued = False
+    queued_count = 0
+    if request.args.get('place_id'):
+        queued = request.args.get('place_id')
+        queued_count = request.args.get('count')
+
+    return render_template("home.html", places=places, count=len(places), google_api_key_js_map=vars.google_api_key_js_map, queued_count=queued_count, queued=queued)
 
 
 @app.route("/login", methods=['GET', 'POST'])

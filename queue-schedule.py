@@ -25,13 +25,14 @@ import schedule
 import urllib2
 import json
 import socket
+import traceback
 # local 
 import utils_sqs
 import utils_db
 
 def get_server():
     server = socket.gethostname()
-    if server == 'precise64':
+    if server == 'gbox':
         return 'http://0.0.0.0:5000'
     else:
         return 'http://redata.giggy.com'
@@ -61,29 +62,32 @@ def process_queue(loop_count = 0):
             time.sleep(3)
             process_queue(loop_count + 1)
     except:
-        e = sys.exc_info()[0]
-        print '--------- ERROR IN process_queue --------\n%s\n------------------' % e
+        #e = sys.exc_info()[0]
+        #print '--------- ERROR IN process_queue --------\n%s\n------------------' % e
+        print '--------- ERROR IN process_queue --------\n%s\n------------------' % traceback.format_exc()
 
 
 ###########################
 
 # clear existing schedules
-schedule.clear()
+#schedule.clear()
 # check if a new place needs to be queued every 6 hours
-schedule.every(6).hours.do(queue_place)
+#schedule.every(6).hours.do(queue_place)
 # kick off queue processing every 10 minutes
-schedule.every(10).minutes.do(process_queue)
-
-queue_place()
-process_queue()
+#schedule.every(10).seconds.do(process_queue)
 
 while True:
     print '...tick... %s' % datetime.datetime.now()
     try:
-        schedule.run_pending()
+        #schedule.run_pending()
+
+        queue_place()
+        process_queue()
     except:
         e = sys.exc_info()[0]
         print '--------- ERROR IN SCHEDULE RUNNER --------\n%s\n------------------' % e
 
-    time.sleep(300) # check every 5 minutes whether any jobs need to run
+        process_queue()
+
+    time.sleep(10) # check every 5 minutes whether any jobs need to run
 

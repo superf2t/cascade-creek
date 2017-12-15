@@ -49,7 +49,9 @@ def queue_all_calendar_page():
 @flask_login.login_required
 def queue_all_calendar_for_place_id_page(place_id):
     count = requeue_place(place_id)
-    return redirect("/queue/queue_all_calendar?place_id=%s&count=%s" % (place_id, count))
+    #commented 20171215 in attempt to keep from re-loading queue twice
+    #return redirect("/queue/queue_all_calendar?place_id=%s&count=%s" % (place_id, count))
+    return redirect("/?place_id=%s&count=%s" % (place_id, count))
 
 
 ##################

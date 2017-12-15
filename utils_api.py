@@ -47,7 +47,16 @@ def get_google_place(place):
 def get_place_search(place_search_url):    
     time_start = time.time()
 
-    result = requests.get(place_search_url)
+    utils.log("get_place_search", place_search_url)
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'}
+    #cookies = {'cooies': 'sdid=; ftv=1510164990833; __ssid=b18bbb4a-03a4-41bd-aa7b-5c6ed432c7ce; hli=1; har=1; fbm_138566025676=base_domain=.airbnb.com; prrv2=control; has_predicted_user_langs=1; 251aa4ff0=control; 3fbb8aeb0=treatment; 7af62ae29=new_marquee; 278c2c202=control; c98f39478=control; 76cfc8758=control; xplwp2=new_marquee_2; 0241b3c76=control; fblo_138566025676=y; _csrf_token=V4%24.airbnb.com%24kHIw8WbMf1g%24_LwXPHl_gK_9HFl2Co7y3B_tT9THFdDstep_9wOe4ws%3D; li=1; _aat=0%7CJMYpofeKenvW3FkmemmF8duZwlCX6lyCx5u5NbhV%2BPbH5NXa%2B8%2FQTaYnuEwELPIb; abb_fa2=%7B%22user_id%22%3A%2210%7C1%7CM8g%2B4%2BjpZ1%2B%2FmhoZemD7TopcZw7TIrlqIVtb7wM9zgL4mmghYVZ6%22%7D; rclmd=%7B%222706251%22%3D%3E%22email%22%2C+%2212101375%22%3D%3E%22email%22%7D; roles=0; _airbed_session_id=d566eb920626a8dc5baacbe29337cf73; flags=806756612; ed1dc13cb=treatment; mdr_browser=desktop; _user_attributes=%7B%22curr%22%3A%22USD%22%2C%22guest_exchange%22%3A1.0%2C%22device_profiling_session_id%22%3A%221510164987--28133b4a024b36a58f7cfc0f%22%2C%22giftcard_profiling_session_id%22%3A%221512407451-2706251-63a99e7a7d26d009283b1773%22%2C%22reservation_profiling_session_id%22%3A%221512407451-2706251-dcdb53f8645e6983c6494888%22%2C%22id%22%3A2706251%2C%22hash_user_id%22%3A%225e734e2f36d9b9845f49a600cfeb3e1931380f27%22%2C%22eid%22%3A%22AcRf4LQddbyIWOak2SJFxQ%3D%3D%22%2C%22num_msg%22%3A101%2C%22num_notif%22%3A3%2C%22num_alert%22%3A4%2C%22num_h%22%3A0%2C%22num_pending_requests%22%3A0%2C%22num_trip_notif%22%3A0%2C%22name%22%3A%22Travis%22%2C%22num_action%22%3A0%2C%22pellet_to%22%3A10%2C%22is_admin%22%3Afalse%2C%22can_access_photography%22%3Afalse%7D; AMP_TOKEN=%24NOT_FOUND; _ga=GA1.2.1569909426.1510164990; _gid=GA1.2.732328158.1512324997; jitney_client_session_id=8e9fad9c-adf8-4bbc-aa60-178273f7b043; jitney_client_session_created_at=1512407776; jitney_client_session_updated_at=1512407776; cbkp=3; _pt=1--WyI1ZTczNGUyZjM2ZDliOTg0NWY0OWE2MDBjZmViM2UxOTMxMzgwZjI3Il0%3D--a9710a3b2457e7e3e044605512e13affdd943b5f; bev=1510164986_DpJ7wPrIZfm%2F%2Fcf7; jitney_client_session_id=44cc38b0-65be-4c62-973f-0d2eaab7d9c2; jitney_client_session_created_at=1512410102; jitney_client_session_updated_at=1512410102'}
+    result = requests.get(place_search_url, headers=headers) #, cookies=cookies)
+
+    print('-------------- result ---------------')
+    print(result)
+    print(result.content)
+    print('-------------- end: result ---------------')
+    #utils.log("get_place_search", result.json())
 
     #log
     elapsed_time = time.time() - time_start

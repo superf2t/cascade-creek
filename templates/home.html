@@ -10,6 +10,10 @@
 {% block body %}
 
     
+    {% if queued != False %}
+        <div class="alert alert-info" role="alert">Queued {{ queued_count }} Calendar SQS messages for Place {{ queued }}</div>
+    {% endif %}
+    
     <h1>There are {{ count }} locations</h1>
     <br />
 
